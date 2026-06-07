@@ -17,6 +17,7 @@
 - `docs/tutorials/02-原生HTML调用.md`：普通 HTML 页面调用教程。
 - `docs/tutorials/03-React调用.md`：React 工程调用教程。
 - `docs/tutorials/04-替换数据.md`：替换成甲方数据的步骤。
+- `docs/interaction-plan/component-interactions.md`：后续组件间两两联动规划。
 - `docs/pdf/`：上述文档和组件说明的 PDF 版本。
 
 ## 不包含

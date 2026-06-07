@@ -42,6 +42,7 @@
 
 - 单组件 demo 不依赖 `example/prismviz.js`。
 - 本交付包同时提供原生 JavaScript 调用方式和 React wrapper；React demo 使用浏览器 import map 加载 React，甲方工程中可改为项目自身的 `react` / `react-dom` 依赖。
+- Tree 当前只做 slice/topic 层级列表展示和选择入口；产业通系统已有较成熟的产业层级树实现，reference 原系统也没有复杂 Tree，因此本包没有对 Tree 做深入开发。
 - `demo-support/*` 不是新增数据格式，只是 demo 加载本地 JSON 和展示少量 demo 指标的辅助代码；核心建模和详情整理已经放在 `src/adapters/*` / `src/detail/*`。
 - `example/prismviz.js` 只保留为源系统交互效果参考，不作为新组件运行依赖。
 - Graphviz runtime 当前仍使用 `example/viz-standalone.js` 和 `example/viz-context.js`，属于运行时资源；后续可以迁移到 `vendor/graphviz/`。
