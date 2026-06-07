@@ -1,0 +1,569 @@
+{
+  "0": {
+    "chordName": "三维",
+    "fullName": "image ct 3d surgical surgery brain medical ultrasound",
+    "matchingPaperCount": 1,
+    "shortName": "三维医学影像",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "3d image ct surgical surgery brain medical ultrasound",
+    "source": "raw/field_leaves.csv"
+  },
+  "1": {
+    "chordName": "流体",
+    "fullName": "flow jet vortex velocity pressure heat cylinder measurement experimental layer",
+    "matchingPaperCount": 0,
+    "shortName": "流体涡流实验",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "flow jet vortex velocity pressure heat cylinder measurement experimental layer",
+    "source": "raw/field_leaves.csv"
+  },
+  "10": {
+    "chordName": "并行",
+    "fullName": "parallel performance grid compute distribute debug execution scientific application program",
+    "matchingPaperCount": 10,
+    "shortName": "并行计算性能",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "performance grid parallel compute distribute debug execution scientific application program",
+    "source": "example/index.html"
+  },
+  "11": {
+    "chordName": "地理",
+    "fullName": "gi map spatial geographic geospatial information cartographic data geographical",
+    "matchingPaperCount": 8,
+    "shortName": "地理信息数据",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "information data gi map spatial geographic geospatial cartographic geographical",
+    "source": "example/index.html"
+  },
+  "12": {
+    "chordName": "可视",
+    "fullName": "visualization analytics visual information data knowledge research design cognitive",
+    "matchingPaperCount": 173,
+    "shortName": "可视分析研究",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "analytics research visual data visualization information design knowledge cognitive",
+    "source": "raw/field_leaves.csv"
+  },
+  "13": {
+    "chordName": "三维",
+    "fullName": "geological seismic model coal 3d rock earthquake interpretation",
+    "matchingPaperCount": 7,
+    "shortName": "三维地质模型",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "3d model geological seismic coal rock earthquake interpretation",
+    "source": "example/index.html"
+  },
+  "14": {
+    "chordName": "降维",
+    "fullName": "dimensionality cluster reduction data coordinate multidimensional parallel multivariate",
+    "matchingPaperCount": 1,
+    "shortName": "降维聚类",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "multidimensional data dimensionality cluster reduction coordinate parallel multivariate",
+    "source": "example/index.html"
+  },
+  "15": {
+    "chordName": "交通",
+    "fullName": "traffic movement mobility transportation drive vehicle road driver data trajectory",
+    "matchingPaperCount": 35,
+    "shortName": "交通轨迹分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "movement traffic trajectory data mobility vehicle road transportation drive driver",
+    "source": "raw/field_leaves.csv"
+  },
+  "16": {
+    "chordName": "文献",
+    "fullName": "research citation patent bibliometric analysis science knowledge literature china citespace",
+    "matchingPaperCount": 7,
+    "shortName": "文献计量分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "analysis literature research knowledge citation patent bibliometric science china citespace",
+    "source": "example/index.html"
+  },
+  "17": {
+    "chordName": "流体",
+    "fullName": "flow fluid field streamline streamlines vector visualization particle",
+    "matchingPaperCount": 17,
+    "shortName": "流体场可视化",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "visualization field flow fluid streamline streamlines vector particle",
+    "source": "example/index.html"
+  },
+  "18": {
+    "chordName": "地形",
+    "fullName": "terrain render dem elevation lod real algorithm 3d digital large",
+    "matchingPaperCount": 12,
+    "shortName": "地形渲染",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "large real terrain render dem elevation lod algorithm 3d digital",
+    "source": "example/index.html"
+  },
+  "19": {
+    "chordName": "社交",
+    "fullName": "social twitter sentiment network medium tweet analysis opinion user",
+    "matchingPaperCount": 2,
+    "shortName": "社交网络用户",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "network user social twitter sentiment medium tweet analysis opinion",
+    "source": "example/index.html"
+  },
+  "2": {
+    "chordName": "虚拟",
+    "fullName": "virtual reality vr augment ar haptic environment immersive user interaction",
+    "matchingPaperCount": 6,
+    "shortName": "虚拟现实",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "vr reality immersive virtual interaction user environment ar augment haptic",
+    "source": "raw/field_leaves.csv"
+  },
+  "20": {
+    "chordName": "网络",
+    "fullName": "security network attack cyber traffic intrusion malware detection id",
+    "matchingPaperCount": 66,
+    "shortName": "网络安全流量",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "network security traffic cyber detection malware intrusion attack id",
+    "source": "raw/field_leaves.csv"
+  },
+  "22": {
+    "chordName": "时间",
+    "fullName": "series time temporal data vary pattern timeline visual multivariate event",
+    "matchingPaperCount": 60,
+    "shortName": "时间序列模式",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "series time temporal multivariate data event visual pattern vary timeline",
+    "source": "raw/field_leaves.csv"
+  },
+  "23": {
+    "chordName": "文化",
+    "fullName": "heritage cultural archaeological 3d museum digital virtual historical documentation archaeology",
+    "matchingPaperCount": 10,
+    "shortName": "文化遗产数字化",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "heritage cultural archaeological 3d museum digital virtual historical documentation archaeology",
+    "source": "example/index.html"
+  },
+  "24": {
+    "chordName": "视频",
+    "fullName": "video action summarization temporal content retrieval recognition semantic frame",
+    "matchingPaperCount": 31,
+    "shortName": "视频时序内容",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "temporal video content action summarization retrieval recognition semantic frame",
+    "source": "example/index.html"
+  },
+  "25": {
+    "chordName": "文本",
+    "fullName": "document text topic search corpus information word",
+    "matchingPaperCount": 11,
+    "shortName": "文本信息检索",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "information document text topic search corpus word",
+    "source": "example/index.html"
+  },
+  "26": {
+    "chordName": "水文",
+    "fullName": "flood water river groundwater reservoir gi hydrological dam management simulation",
+    "matchingPaperCount": 0,
+    "shortName": "水文洪涝模拟",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "flood water river groundwater reservoir gi hydrological dam management simulation",
+    "source": "example/index.html"
+  },
+  "27": {
+    "chordName": "地理",
+    "fullName": "geospatial map geographic cartographic geovisualization information data cartography",
+    "matchingPaperCount": 47,
+    "shortName": "地理空间地图",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "geographic geospatial map data information geovisualization cartographic cartography",
+    "source": "raw/field_leaves.csv"
+  },
+  "28": {
+    "chordName": "平面",
+    "fullName": "graph planar draw drawing edge vertex orthogonal straight",
+    "matchingPaperCount": 13,
+    "shortName": "平面图绘制",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "graph planar draw drawing edge vertex orthogonal straight",
+    "source": "example/index.html"
+  },
+  "29": {
+    "chordName": "植物",
+    "fullName": "plant tree forest growth leaf root rice stand",
+    "matchingPaperCount": 1,
+    "shortName": "植物森林生长",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "plant tree forest growth leaf root rice stand",
+    "source": "example/index.html"
+  },
+  "3": {
+    "chordName": "图结",
+    "fullName": "graph draw edge drawing planar layout vertex cross",
+    "matchingPaperCount": 13,
+    "shortName": "图结构绘制",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "graph drawing draw edge planar layout vertex cross",
+    "source": "raw/field_leaves.csv"
+  },
+  "30": {
+    "chordName": "海洋",
+    "fullName": "ocean marine coastal sonar sea underwater data oceanographic acoustic fish",
+    "matchingPaperCount": 16,
+    "shortName": "海洋声学数据",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "data ocean marine coastal sonar sea underwater oceanographic acoustic fish",
+    "source": "example/index.html"
+  },
+  "31": {
+    "chordName": "超声",
+    "fullName": "wave ultrasonic defect damage crack concrete acoustic stress",
+    "matchingPaperCount": 22,
+    "shortName": "超声损伤检测",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "wave ultrasonic defect damage crack concrete acoustic stress",
+    "source": "example/index.html"
+  },
+  "32": {
+    "chordName": "文本",
+    "fullName": "text document topic corpus word collection analysis visual",
+    "matchingPaperCount": 75,
+    "shortName": "文本主题分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "text topic analysis document word visual corpus collection",
+    "source": "raw/field_leaves.csv"
+  },
+  "33": {
+    "chordName": "城市",
+    "fullName": "traffic transportation mobility urban road travel taxi congestion bus data",
+    "matchingPaperCount": 11,
+    "shortName": "城市交通出行",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "data traffic transportation mobility urban road travel taxi congestion bus",
+    "source": "example/index.html"
+  },
+  "34": {
+    "chordName": "社媒",
+    "fullName": "social medium twitter event tweet sentiment news post analysis",
+    "matchingPaperCount": 39,
+    "shortName": "社媒舆情事件",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "news sentiment twitter analysis social event medium tweet post",
+    "source": "raw/field_leaves.csv"
+  },
+  "35": {
+    "chordName": "建筑",
+    "fullName": "bim building construction model management information project ifc design",
+    "matchingPaperCount": 5,
+    "shortName": "建筑BIM管理",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "information bim building construction model management project ifc design",
+    "source": "example/index.html"
+  },
+  "36": {
+    "chordName": "并行",
+    "fullName": "parallel render gpu graphic gpus sort processing memory load volume",
+    "matchingPaperCount": 11,
+    "shortName": "GPU并行渲染",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "load parallel render gpu graphic gpus sort processing memory volume",
+    "source": "example/index.html"
+  },
+  "37": {
+    "chordName": "视觉",
+    "fullName": "localization slam odometry visual place indoor robot camera recognition monocular",
+    "matchingPaperCount": 1,
+    "shortName": "视觉定位SLAM",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "localization slam odometry visual place indoor robot camera recognition monocular",
+    "source": "example/index.html"
+  },
+  "38": {
+    "chordName": "时序",
+    "fullName": "series time temporal event data vary pattern visualization",
+    "matchingPaperCount": 27,
+    "shortName": "时序事件可视化",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "visualization data time series temporal event vary pattern",
+    "source": "example/index.html"
+  },
+  "39": {
+    "chordName": "目标",
+    "fullName": "track tracker target object filter visual robust correlation siamese",
+    "matchingPaperCount": 10,
+    "shortName": "目标跟踪滤波",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "filter visual track tracker target object robust correlation siamese",
+    "source": "example/index.html"
+  },
+  "4": {
+    "chordName": "城市",
+    "fullName": "building model city urban 3d citygml bim gi",
+    "matchingPaperCount": 6,
+    "shortName": "城市三维建模",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "3d urban city model building citygml bim gi",
+    "source": "raw/field_leaves.csv"
+  },
+  "40": {
+    "chordName": "色彩",
+    "fullName": "color colour image colormaps gamut colorization",
+    "matchingPaperCount": 4,
+    "shortName": "色彩映射",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "color colour image colormaps gamut colorization",
+    "source": "example/index.html"
+  },
+  "41": {
+    "chordName": "可视",
+    "fullName": "연구 위한 관한 이용한 개발 가시화 대한 flow 시스템 시각화",
+    "matchingPaperCount": 5,
+    "shortName": "可视化系统研究",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "연구 위한 관한 이용한 개발 가시화 대한 flow 시스템 시각화",
+    "source": "example/index.html"
+  },
+  "42": {
+    "chordName": "自组",
+    "fullName": "som organize self map cluster data neural",
+    "matchingPaperCount": 7,
+    "shortName": "自组织映射",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "map data cluster som organize self neural",
+    "source": "example/index.html"
+  },
+  "43": {
+    "chordName": "立体",
+    "fullName": "stereoscopic display depth image disparity 3d parallax",
+    "matchingPaperCount": 15,
+    "shortName": "立体显示",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "stereoscopic display depth image disparity 3d parallax",
+    "source": "example/index.html"
+  },
+  "45": {
+    "chordName": "图像",
+    "fullName": "quality assessment video image cod iqa subjective reference distortion metric",
+    "matchingPaperCount": 2,
+    "shortName": "图像质量评估",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "quality assessment video image cod iqa subjective reference distortion metric",
+    "source": "example/index.html"
+  },
+  "46": {
+    "chordName": "标签",
+    "fullName": "tag cloud word content text social",
+    "matchingPaperCount": 12,
+    "shortName": "标签云文本",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "social tag cloud word content text",
+    "source": "example/index.html"
+  },
+  "47": {
+    "chordName": "语义",
+    "fullName": "ontology knowledge semantic ontological link web domain concept",
+    "matchingPaperCount": 3,
+    "shortName": "语义知识本体",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "ontology knowledge semantic ontological link web domain concept",
+    "source": "example/index.html"
+  },
+  "48": {
+    "chordName": "眼动",
+    "fullName": "eye track gaze movement aois scanpath data visual",
+    "matchingPaperCount": 39,
+    "shortName": "眼动行为分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "movement visual data eye gaze track aois scanpath",
+    "source": "raw/field_leaves.csv"
+  },
+  "49": {
+    "chordName": "数据",
+    "fullName": "plurality data method second include visualization mark set display generate",
+    "matchingPaperCount": 52,
+    "shortName": "数据标记展示",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "data visualization plurality second display method set include generate mark",
+    "source": "raw/field_leaves.csv"
+  },
+  "5": {
+    "chordName": "流场",
+    "fullName": "field flow vector fluid particle tensor simulation visualization streamlines",
+    "matchingPaperCount": 4,
+    "shortName": "流场可视化",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "visualization field flow vector fluid particle tensor simulation streamlines",
+    "source": "raw/field_leaves.csv"
+  },
+  "50": {
+    "chordName": "时空",
+    "fullName": "spatio temporal spatiotemporal time cube data space spatial pattern event",
+    "matchingPaperCount": 71,
+    "shortName": "时空模式分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "time temporal spatial data pattern space spatiotemporal event spatio cube",
+    "source": "raw/field_leaves.csv"
+  },
+  "51": {
+    "chordName": "心理",
+    "fullName": "imagery mental visual motor vividness memory perception cognitive sensory mind",
+    "matchingPaperCount": 3,
+    "shortName": "心理视觉感知",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "mental visual imagery motor vividness memory perception cognitive sensory mind",
+    "source": "example/index.html"
+  },
+  "52": {
+    "chordName": "气象",
+    "fullName": "climate weather meteorological data atmospheric change rainfall forecast visualization tropical",
+    "matchingPaperCount": 5,
+    "shortName": "气象数据可视化",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "visualization data climate weather meteorological atmospheric change rainfall forecast tropical",
+    "source": "example/index.html"
+  },
+  "53": {
+    "chordName": "多目",
+    "fullName": "pareto optimization objective multiobjective evolutionary genetic decision solution problem",
+    "matchingPaperCount": 4,
+    "shortName": "多目标决策",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "decision pareto optimization objective multiobjective evolutionary genetic solution problem",
+    "source": "example/index.html"
+  },
+  "54": {
+    "chordName": "仿真",
+    "fullName": "matlab simulink fortran teach program toolbox simulation application software gui",
+    "matchingPaperCount": 3,
+    "shortName": "Matlab仿真教学",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "application matlab simulink fortran teach program toolbox simulation software gui",
+    "source": "example/index.html"
+  },
+  "55": {
+    "chordName": "图书",
+    "fullName": "guide libguides resource library research data tool home visualization",
+    "matchingPaperCount": 6,
+    "shortName": "图书馆数据资源",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "data visualization guide libguides resource library research tool home",
+    "source": "example/index.html"
+  },
+  "56": {
+    "chordName": "不确",
+    "fullName": "uncertainty ensemble visualization decision visualize data make",
+    "matchingPaperCount": 29,
+    "shortName": "不确定性决策",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "data make visualization decision uncertainty ensemble visualize",
+    "source": "example/index.html"
+  },
+  "57": {
+    "chordName": "会议",
+    "fullName": "conference proceeding paper symposium international acm seminar ieee graphic special",
+    "matchingPaperCount": 4,
+    "shortName": "会议论文专题",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "paper conference proceeding symposium international acm seminar ieee graphic special",
+    "source": "example/index.html"
+  },
+  "58": {
+    "chordName": "疫情",
+    "fullName": "covid 19 pandemic coronavirus epidemic spread disease outbreak case",
+    "matchingPaperCount": 4,
+    "shortName": "疫情传播案例",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "case covid 19 pandemic coronavirus epidemic spread disease outbreak",
+    "source": "example/index.html"
+  },
+  "59": {
+    "chordName": "点云",
+    "fullName": "cloud point lidar laser 3d scan data airborne",
+    "matchingPaperCount": 1,
+    "shortName": "点云激光扫描",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "data cloud point lidar laser 3d scan airborne",
+    "source": "example/index.html"
+  },
+  "6": {
+    "chordName": "曲面",
+    "fullName": "surface mesh isosurface march shape algorithm extraction implicit",
+    "matchingPaperCount": 8,
+    "shortName": "曲面形状算法",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "shape algorithm mesh surface isosurface march extraction implicit",
+    "source": "raw/field_leaves.csv"
+  },
+  "60": {
+    "chordName": "多语",
+    "fullName": "la en que el para se los da como del",
+    "matchingPaperCount": 3,
+    "shortName": "多语言文本",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "la en que el para se los da como del",
+    "source": "example/index.html"
+  },
+  "62": {
+    "chordName": "图像",
+    "fullName": "image browsing collection photo retrieval database large search",
+    "matchingPaperCount": 39,
+    "shortName": "图像检索数据库",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "image search database large retrieval browsing collection photo",
+    "source": "raw/field_leaves.csv"
+  },
+  "64": {
+    "chordName": "服装",
+    "fullName": "garment cloth collision clothing fabric detection knit yarn body",
+    "matchingPaperCount": 0,
+    "shortName": "服装布料仿真",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "garment cloth collision clothing fabric detection knit yarn body",
+    "source": "example/index.html"
+  },
+  "65": {
+    "chordName": "可视",
+    "fullName": "для на визуализации системы та данных при основе article",
+    "matchingPaperCount": 19,
+    "shortName": "可视化系统文章",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "article для на визуализации системы та данных при основе",
+    "source": "example/index.html"
+  },
+  "66": {
+    "chordName": "情感",
+    "fullName": "emotion emotional recognition affective audio multimodal speech facial feature",
+    "matchingPaperCount": 3,
+    "shortName": "情感识别分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "emotion emotional recognition affective audio multimodal speech facial feature",
+    "source": "example/index.html"
+  },
+  "7": {
+    "chordName": "多维",
+    "fullName": "multidimensional cluster data coordinate reduction dimensionality parallel high",
+    "matchingPaperCount": 158,
+    "shortName": "多维数据分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "data high multidimensional cluster parallel dimensionality reduction coordinate",
+    "source": "raw/field_leaves.csv"
+  },
+  "8": {
+    "chordName": "基因",
+    "fullName": "pathway gene biological genome expression analysis data genomic metabolic",
+    "matchingPaperCount": 8,
+    "shortName": "基因通路分析",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "gene biological expression analysis data genome pathway genomic metabolic",
+    "source": "raw/field_leaves.csv"
+  },
+  "9": {
+    "chordName": "图像",
+    "fullName": "image learn neural deep classification network convolutional visual object",
+    "matchingPaperCount": 28,
+    "shortName": "图像分类识别",
+    "shortNameSource": "raw/topic_short_names.csv",
+    "sortedName": "image classification network visual deep learn neural convolutional object",
+    "source": "raw/field_leaves.csv"
+  }
+}

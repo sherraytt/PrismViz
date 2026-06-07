@@ -1,0 +1,27 @@
+{
+  "layoutMode": "free",
+  "scrollRenderer": "force-graph",
+  "sliceWeightTopK": 3,
+  "filters": {
+    "relationTypes": [
+      "investment",
+      "shareholding"
+    ],
+    "customFilterCandidates": [
+      "城市",
+      "注册资本(万元)",
+      "状态",
+      "成立年份"
+    ]
+  },
+  "prism": {
+    "rotationSpeed": 1,
+    "sliceLabelScale": 100,
+    "entityNodeShape": "hexagon"
+  },
+  "scroll": {
+    "showStreams": false,
+    "showContextBars": false,
+    "showEntityLabels": true
+  }
+}

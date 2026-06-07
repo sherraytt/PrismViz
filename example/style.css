@@ -1,0 +1,1071 @@
+@font-face {
+    font-family: "Archivo Narrow";
+    font-weight: 400;
+    font-style: normal;
+    src: url('../static/css/font/ArchivoNarrow-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: "Archivo Narrow";
+    font-weight: 700;
+    font-style: normal;
+    src: url('../static/css/font/ArchivoNarrow-Bold.ttf') format('truetype');
+}
+
+
+@font-face {
+	font-family: 'Roboto';
+	src: url('../static/css/font/Roboto-Regular.ttf') format('truetype');
+}
+
+/* .archivo-narrow-regular {
+    font-family: "Archivo Narrow", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.archivo-narrow-bold {
+    font-family: "Archivo Narrow", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+} */
+
+.archivo-narrow-regular {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.archivo-narrow-bold {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.container-fluid {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	min-height: 100vh;
+	overflow: hidden;
+	padding-left: 0px;
+	padding-right: 0px;
+	background-color: #f5fafa;
+}
+.navigation {
+	position: relative;
+	z-index: 20;
+	box-shadow:
+		5px 5px 5px rgba(0, 0, 0, 0.5),
+		-5px 5px 5px rgba(0, 0, 0, 0.5);
+} 
+
+.main-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch; /* 默认值，使列高度相等 */
+    background-color: #f5fafa;
+    margin: 0px;
+    /* padding-bottom: 1%; */
+
+	flex: 1 1 auto;
+	height: auto;
+	min-height: 0;
+	overflow: hidden;
+}
+.left-column {
+    flex: 2.5;
+    background-color: #f5fafa;
+    /* padding-top: 0.8%; */
+	margin-right: -1%;
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+.middle-column {
+    flex: 7;
+    background-color: #FFFFFF;
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    isolation: isolate;
+	box-shadow:
+		0 18px 42px rgba(0, 0, 0, 0.18),
+		0 6px 16px rgba(0, 0, 0, 0.14);
+	min-height: 500px;
+	height: 100%;
+}
+.right-column {
+    flex: 2.5;
+    /* padding-top: 0.8%; */
+	/* margin-left: -1%; */
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+	min-height: 500px;
+    height: 100%;
+}
+
+/* 在小屏幕上重新排列列 */
+@media (max-width: 768px) {
+    .left-column, .middle-column, .right-column {
+        flex: 1; /* 重新分配宽度 */
+        width: 100%; /* 使它们占满整个宽度 */
+        padding: 1%; /* 可选的内边距 */
+    }
+}
+
+a {
+    color: #054863;
+    text-decoration: underline;
+}
+a:hover{
+    color: #777777;
+    text-decoration: underline;
+}
+ul.address {
+    padding: 0;
+    margin-top: 0px; 
+    border-top: none;
+    border-radius: 7px;
+    background-color: #FFFFFF;
+}
+ul.address li ul.address-text li {
+    display: inline-block;
+    font-size: 1em;
+    color: #fff;
+    /* margin-top: 0.7em; */
+	font-weight: 400;
+}
+ul.address li ul.address-text li button {
+    background-color: #054863;
+    color: #FFFFFF;
+    border-style: none;
+    margin-left: 10%;
+}
+/* ul.address li ul.address-text li:nth-child(1){
+	width: 20%;
+} */
+ul.address-text b {
+    color: #404040;
+    margin-left: 10%;
+}
+ul.address-text p {
+    color: #FFFFFF;
+    margin-left: 10%;
+}
+.topic-slider {
+    input[type="range"]::-webkit-slider-thumb{
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        width: 100px;
+        height: 100px;
+        background-color: #ccc;
+        border-radius: 50%;
+    }
+}
+
+#tag-tooltip {
+	position: absolute;
+	text-anchor: middle;
+	font-size: 20px;
+	font-weight: bold;
+	fill: #054863;
+	opacity: 0;
+	margin-left: 15%;
+}
+
+#prismviz-draw-area,
+#draw-area,
+#prismviz-prism-panel,
+#GeneticPrism,
+#prismviz-scroll-panel,
+#GeneticFlow,
+#prismviz-slice-tags,
+#tagcloud {
+	overflow: hidden;
+}
+
+#prismviz-scroll-panel,
+#GeneticFlow,
+#prismviz-prism-panel,
+#GeneticPrism {
+	position: absolute;
+	inset: 0;
+}
+
+#prismviz-scroll-panel,
+#GeneticFlow {
+	bottom: 0;
+	z-index: 2;
+}
+
+#prismviz-slice-tags,
+#tagcloud {
+	z-index: 6;
+	background: transparent !important;
+	pointer-events: auto;
+}
+
+#prismviz-slice-tags svg,
+#tagcloud svg {
+	background: transparent !important;
+}
+
+#prismviz-scroll-panel svg,
+#GeneticFlow svg,
+#prismviz-prism-panel svg,
+#GeneticPrism svg,
+#prismviz-chord-content svg,
+#chord-content svg {
+	display: block;
+	max-width: 100%;
+}
+
+#prism-speed-slot,
+#tag-scale-slot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+}
+
+#rotation-speed-control,
+#tag-scale-control {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	min-width: 0;
+}
+
+#rotation-speed-label,
+#tag-scale-label {
+	flex: 0 0 auto;
+	min-width: 40px;
+	text-align: right;
+	white-space: nowrap;
+	color: #4a4a4a;
+}
+
+#rotation-speed-control input[type=range],
+#tag-scale-control input[type=range] {
+	flex: 1 1 auto;
+	width: auto !important;
+	min-width: 56px;
+}
+
+#control {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	margin-top: 10px;
+	right: 37%;
+	max-width: 1000px;
+}
+
+.icon-button.highlight {
+    border: 3px solid RED;
+    position: relative; /* 添加这一行来使 z-index 生效 */
+    z-index: 11;
+}
+
+#info-text {
+    display: none;
+    position: absolute;
+    margin-left: 10px;
+    color: white;
+    font-size: 24px;
+	z-index: 11;
+	line-height: 28px;
+}
+
+/* 遮罩层样式 */
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
+    z-index: 5; /* 确保在最上层 */
+}
+
+
+/* table相关 */
+table {
+	background-color: #dddddd;
+}
+
+table thead {
+	border-top-left-radius: 4%;
+	border-top-right-radius: 4%;
+}
+
+table th,
+table td {
+	text-align: center; /* 文本水平居中对齐 */
+	vertical-align: middle; /* 文本垂直居中对齐 */
+	/* border: 1px solid #ccc; 添加单元格边框样式 */
+	padding: 5px; /* 添加内边距以增加可读性 */
+	/* font-family: Arial, sans-serif; */
+	font-family: 'Roboto';
+	font-size: 16px;
+	/* line-height: 1em; */
+	/* height: 1em; */
+}
+
+table th {
+	background-color: #CCE8EB;
+}
+
+table th.asc:before {
+	display: inline;
+	content: '🔽 ';
+}
+
+table th.desc:before {
+	display: inline;
+	content: '🔼 ';
+}
+
+
+table td, table th{
+	border: 0.5px solid #cad9ea;
+	border: none;
+	/* color: #cad9ea rgba(202, 217, 234, 0.5)*/
+}
+/* table thead th{
+	background-color: #CCE8EB;
+	width: 100px;
+} */
+th:hover {
+	cursor: pointer;
+	background-color: #a4c7cb; 
+}
+table tr:nth-child(odd){
+	background: #fff;
+}
+table tr:nth-child(even){
+	background: #F5FAFA;
+}
+
+tr:hover {
+	background-color: #e8e8e8!important;
+	transition: background-color 0.2s;
+}
+
+/* 滚动槽 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    border-radius: 3px;
+    background: rgba(0,0,0,0.06);
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.08);
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: rgba(0,0,0,0.12);
+    -webkit-box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+/*自定义滑动控件的轨道*/
+/* input[type=range]::-webkit-slider-runnable-track {
+	width: 100%;
+	height: 8.4px;
+	cursor: pointer;
+	box-shadow: 1px 1px 1px rgba(0, 0, 0, 0), 0 0 1px rgba(13, 13, 13, 0);
+	background: #7fddff; 
+	border-radius: 3.3px;
+	border: 0.2px solid rgba(1, 1, 1, 0);
+} */
+
+/* 专门为垂直滑块定义的样式，覆盖默认样式。注意先写垂直，后写水平 */
+.vertical-slider .noUi-connect {
+    width: 6px !important; /* 对于垂直滑块，调整连接部分的宽度 */
+    height: 80vh!important;
+}
+
+.vertical-slider .noUi-target,
+.vertical-slider .noUi-base,
+.vertical-slider input[type=range] {
+    width: 6px !important; /* 调整轨道宽度为垂直滑块适用的宽度 */
+	height: 80vh!important;
+}
+
+.noUi-vertical {
+	width: 6px !important;
+}
+
+.noUi-vertical .noUi-handle {
+	right: -5px !important;
+	top: -8px !important;
+}
+
+.noUi-target {
+	background: none !important;
+	height: auto !important;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+.noUi-connect {
+	height: 6px !important;
+	border-radius: 3px !important;
+	background-color: #40a6ff !important;
+}
+
+.noUi-base, 
+input[type=range]{
+	/* width: 556px; */
+	height: 6px !important;
+	border-radius: 3px;
+	outline: none !important;
+	-webkit-appearance: none;/*清除系统默认样式*/
+	background-color: #b3ddff !important;
+	z-index: 0!important;
+}
+/*自定义滑动控件的滑块*/
+.noUi-handle, 
+input[type=range]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	height:15px !important;/*拖动块高度*/
+	width: 15px !important;/*拖动块宽度*/
+	border-radius: 50px !important;
+	cursor: pointer !important;
+	/* margin-top: -3.5px; */
+	box-shadow:0 0 5px rgba(0,0,0,0.8) !important;
+	background: url("logo-G.png") rgba(255,255,255,0.8) no-repeat !important;
+	background-size: contain !important;
+}
+
+.noUi-handle {
+	right: -8px !important;
+	border: none !important;
+}
+.noUi-handle::before {
+	content: none !important;
+}
+.noUi-handle::after {
+	content: none !important;
+}
+
+
+
+
+/*自定义滑动条获得焦点时的背景颜色*/
+/* input[type=range]:focus::-webkit-slider-runnable-track {
+	background: #bada55;
+} */
+
+.address-text button {
+    opacity: 0.5; /* 默认透明度为0.5 */
+}
+
+.address-text p {
+    font-weight: bold;
+}
+
+#entity-list,
+#paper-list {
+    display: flex;
+    flex-direction: column; /* 如果需要垂直排列子元素 */
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#prismviz-entity-list,
+#timeline {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.detail-panel {
+    background: #f5fafa;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    color: #333;
+}
+
+.detail-header {
+    width: 100%;
+    padding: 36px 16px 16px;
+    background-color: #054863;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+#node-info .detail-header,
+#edge-info .detail-header {
+    background-color: #054863 !important;
+    color: #ffffff !important;
+}
+
+.detail-header p {
+    margin: 0 0 0 24px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#node-info .detail-header p,
+#edge-info .detail-header p {
+    color: #ffffff !important;
+}
+
+.detail-header button {
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #054863;
+    cursor: pointer;
+    padding: 5px 12px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+#node-info .detail-header button,
+#edge-info .detail-header button {
+    background: rgba(255, 255, 255, 0.92) !important;
+    color: #054863 !important;
+    font-size: 12px !important;
+}
+
+.detail-table {
+    width: calc(100% - 20px);
+    margin: 10px;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
+    background: #ffffff;
+    font-size: 13px;
+    border: 1px solid #d5e4e8;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.detail-table th,
+.detail-table td {
+    border: none;
+    border-bottom: 1px solid #e5eef1;
+    padding: 9px 10px;
+    vertical-align: top;
+    word-break: break-word;
+    line-height: 1.45;
+}
+
+.detail-table th {
+    width: 30%;
+    background: #d6ecef;
+    color: #1f3338;
+    font-weight: 700;
+    text-align: center;
+}
+
+.detail-table td {
+    background: #ffffff;
+    color: #333;
+    text-align: left;
+}
+
+.detail-table tr:last-child th,
+.detail-table tr:last-child td {
+    border-bottom: none;
+}
+
+#entity-description,
+#relation-context,
+#abstract,
+#citation-context {
+    text-align: left;
+    color: #4d5c62;
+}
+
+.slider-container {
+	display: flex;
+	align-items: center;
+	margin-left: 5%; 
+	/* margin-top: 1%;  */
+	margin-bottom: 2%; 
+	width: 90%;
+}
+
+.slider-container label {
+	margin-right: 5px;
+}
+
+.slider-container span {
+	margin-left: 5px;
+	white-space: nowrap;
+}
+
+.question {
+	position: relative;
+	display: inline-block;
+}
+
+.question .question-tip {
+	visibility: hidden;
+	width: 300px;
+	background-color: black;
+	opacity: 0.8;
+	color: #fff;
+	text-align: center;
+	border-radius: 6px;
+	padding: 5px;
+	position: absolute;
+	z-index: 1;
+	bottom: 150%;
+	left: 50%;
+	margin-left: -150px;
+}
+
+.question .question-tip::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: black transparent transparent transparent;
+}
+
+.question:hover .question-tip {
+	visibility: visible;
+}
+
+.d3-tip {
+	font-weight: normal !important;
+	padding: 8px !important;
+	background: rgba(0, 0, 0, 0.8) !important;
+	color: #fff;
+	border-radius: 2px !important;
+	font-size: 15px !important;
+	pointer-events: none;
+	box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.d3-tip-matrix {
+    padding: 8px;            /* 增加内边距以确保文本不会贴近边框 */
+    background-color: #000;  /* 背景色设置为黑色 */
+    color: #fff;             /* 字体颜色设置为白色 */
+    border: 1px solid #333;  /* 边框，可选择深色 */
+    text-align: center;      /* 文本居中 */
+    font-size: 14px;         /* 可调整字体大小以更好地适应提示框 */
+    line-height: normal;     /* 行高调整以确保行与行之间的空间适中 */
+    border-radius: 3px;      /* 可选，给提示框添加圆角 */
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16); /* 可选，添加阴影以增加立体感 */
+}
+  
+  /* Creates a small triangle extender on the tooltip */
+  /* .d3-tip:after {
+	box-sizing: border-box;
+	display: inline;
+	font-size: 10px;
+	width: 100%;
+	line-height: 1;
+	color: rgba(0, 0, 0, 0.8);
+	content: "\25BC";
+	position: absolute;
+	text-align: center;
+  } */
+  
+  /* Style northward tooltips differently */
+  .d3-tip.n:after {
+	margin: -2px 0 0 0 !important;
+	top: 100%;
+	left: 0;
+  }
+
+.paperNode:hover {
+	background-color: #b3ddff;
+	transition: background-color 0.3s;
+}
+
+/* h1文本底部对齐 */
+h1 {
+	display: inline-block;
+	color: white; 
+	margin-bottom: 0;
+	vertical-align: bottom;
+	line-height: normal;
+}
+
+#screen-size-warning {
+    display: none; /* 默认不显示 */
+    position: fixed; /* 固定位置，覆盖整个屏幕 */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8); /* 半透明黑色背景 */
+    color: white; /* 白色文本 */
+    z-index: 9999; /* 确保在页面其他内容之上 */
+    text-align: center; /* 文本居中 */
+    padding-top: 20%; /* 调整文本位置 */
+    font-size: 20px; /* 字体大小 */
+}
+
+
+/* 开关的基本样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+/* 隐藏默认的checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 自定义滑块 */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #4CAF50;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #4CAF50;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* 圆角滑块 */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+
+.form-select {
+	display: inline-block;
+	width: auto;
+	line-height: normal;
+	background-color: rgb(245, 250, 250);
+	background-image: url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20448%22%20enable-background%3D%22new%200%200%20256%20448%22%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E.arrow%7Bfill%3A%23ffcc00%3B%7D%3C%2Fstyle%3E%3Cpath%20class%3D%22arrow%22%20d%3D%22M255.9%20168c0-4.2-1.6-7.9-4.8-11.2-3.2-3.2-6.9-4.8-11.2-4.8H16c-4.2%200-7.9%201.6-11.2%204.8S0%20163.8%200%20168c0%204.4%201.6%208.2%204.8%2011.4l112%20112c3.1%203.1%206.8%204.6%2011.2%204.6%204.4%200%208.2-1.5%2011.4-4.6l112-112c3-3.2%204.5-7%204.5-11.4z%22%2F%3E%3C%2Fsvg%3E%0A);
+	background-position: right 10px center;
+	background-repeat: no-repeat;
+	background-size: auto 50%;
+	border-radius: 2px;
+	border: none;
+	color: #000000;
+	padding: 5 5 15 5px;
+	outline: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	font-size: 14px;
+  }
+  .form-select::-ms-expand {
+	display: none;
+  }
+  @-moz-document url-prefix() {
+	.form-select {
+	  color: rgba(0, 0, 0, 0);
+	  text-shadow: 0 0 0 #ffffff;
+	}
+  }
+  @font-face {
+	font-family: 'Lato';
+	font-style: normal;
+	font-weight: 300;
+	src: url(https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTPHh7USSwiPHA.ttf) format('truetype');
+  }
+  @font-face {
+	font-family: 'Lato';
+	font-style: normal;
+	font-weight: 400;
+	src: url(https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjx4wWw.ttf) format('truetype');
+  }
+
+  #TopicPrism {
+	height: 100%;
+      margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+  }
+
+  #prismviz-prism-container,
+  #prism-container {
+	position: relative;
+	width: 100px;
+	height: 800px;
+	perspective: 3000px;
+	/* overflow: visible; */
+	overflow: hidden;
+	/* border: 1px solid #000; */
+	user-select: none;
+	-webkit-user-select: none;
+  }
+  #prismviz-prism,
+  #prism {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	margin-top: 0%;
+	transform-style: preserve-3d;
+	transform-origin: center center;
+	will-change: transform;
+	user-select: none;
+	-webkit-user-select: none;
+  }
+  .svg-wrapper {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	transform-origin: center;
+	user-select: none;
+	-webkit-user-select: none;
+  }
+  #prismviz-slice-tags,
+  #tagcloud,
+  .tag-text {
+	user-select: none;
+	-webkit-user-select: none;
+  }
+  .center-marker {
+	position: absolute;
+	width: 2px;
+	height: 600px;
+	background-color: red;
+	left: 50%;
+	visibility: hidden;
+	transform: translateX(-50%);
+  }
+  .prism-slider-container {
+	position: absolute;
+	top: 50%;
+	right: 0px;
+	transform: translateY(-50%);
+	width: 200px !important;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+  }
+
+.d3-tip {
+    line-height: 1;
+    padding: 12px;
+    color: #fff;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 2000; /* 确保提示框在弹窗之上 */
+  }
+
+
+/* 另一种颜色的按钮 */
+button {
+    /* background-color: #008CBA;  */
+	/* 蓝色背景 */
+	/* transparent background */
+	background-color: transparent;
+    border: none; /* 无边框 */
+    color: #054863; /* 白色文字 */
+    text-align: center; /* 文字居中 */
+    text-decoration: none; /* 无下划线 */
+    display: inline-block; /* 行内块 */
+    font-size: 25px; /* 字体大小 */
+    padding: 6px 3px; /* 外边距 */
+    cursor: pointer; /* 光标样式 */
+    border-radius: 10px; /* 圆角边框 */
+    transition-duration: 0.4s; /* 过渡时间 */
+	opacity: 0.6;
+}
+
+/* 鼠标悬停时的样式 */
+button:hover {
+    background-color: #008CBA; /* 背景变白 */
+    color: white; /* 文字变黑 */
+    /* border: 2px solid #008CBA;  */
+	/* 蓝色边框 */
+}
+
+.icon-button {
+	display: inline-block;
+	width: 50px;
+	height: 50px;
+	background-size: cover;
+	cursor: pointer;
+	border: none;
+	font-size: 25px; /* 调整图标大小 */
+}
+
+body {
+	font-family: 'Robato' !important;
+}
+
+.icon-button:hover::after {
+	content: attr(data-tooltip);
+	position: absolute;
+	top: -35px;
+	right: 50%;
+	transform: translateX(50%);
+	background-color: black;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 5px;
+	white-space: nowrap;
+	font-size: 16px;
+	z-index: 10;
+	opacity: 1;
+	visibility: visible;
+}
+
+.icon-button::after {
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center;
+}
+
+/* Eastward tooltips */
+.d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px;
+}
+
+/* Southward tooltips */
+.d3-tip.s:after {
+  content: "\25B2";
+  margin: 0 0 1px 0;
+  top: -8px;
+  left: 0;
+  text-align: center;
+}
+
+/* Westward tooltips */
+.d3-tip.w:after {
+  content: "\25B6";
+  margin: -4px 0 0 -1px;
+  top: 50%;
+  left: 100%;
+}
+
+.topic-tree {
+  padding: 14px 8px 18px;
+  max-height: 320px;
+  overflow-y: auto;
+  color: #27343a;
+  font-size: 14px;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.25;
+  user-select: none;
+}
+
+.tree-node:hover {
+  background: #edf6f7;
+}
+
+.tree-node.active {
+  background: #d8edf0;
+  color: #054863;
+  font-weight: 700;
+}
+
+.tree-node-field {
+  font-weight: 700;
+}
+
+.tree-node-author {
+  font-weight: 600;
+}
+
+.tree-node-topic {
+  color: #42545a;
+}
+
+.tree-node-count {
+  margin-right: 8px;
+  color: #7a8a91;
+  font-size: 12px;
+  white-space: nowrap;
+}

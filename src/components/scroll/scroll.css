@@ -1,0 +1,326 @@
+.gp-scroll {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  overflow: hidden;
+  background: #ffffff;
+  color: #22313f;
+  font-family: "Roboto", "Arial", sans-serif;
+}
+
+.gp-scroll-host {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 520px;
+}
+
+.gp-scroll-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  cursor: grab;
+  user-select: none;
+}
+
+.gp-scroll-svg.is-dragging {
+  cursor: grabbing;
+}
+
+.gp-scroll-content {
+  transform-origin: center;
+}
+
+.gp-scroll-sheet {
+  fill: rgba(255, 255, 255, 0.82);
+  stroke: #ef8f84;
+  stroke-width: 2;
+}
+
+.gp-scroll-year-line {
+  stroke: #dce8eb;
+  stroke-width: 1;
+}
+
+.gp-scroll-year-line.is-tick {
+  stroke: #b7ccd2;
+  stroke-width: 1.4;
+}
+
+.gp-scroll-year-label {
+  fill: #6c7880;
+  font-size: 15px;
+}
+
+.gp-scroll-inner-title {
+  fill: #22313f;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.gp-scroll-edge {
+  fill: none;
+  stroke: #19252c;
+  stroke-linecap: round;
+  opacity: 1;
+  transition: opacity 120ms ease, stroke 120ms ease, stroke-width 120ms ease;
+}
+
+.gp-scroll-edge-hit {
+  fill: none;
+  stroke: #000000 !important;
+  stroke-opacity: 0.001 !important;
+  stroke-width: var(--gp-scroll-edge-hit-width, 14) !important;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+}
+
+.gp-scroll-node-hit {
+  fill: rgba(0, 0, 0, 0.001);
+  stroke: #000000;
+  stroke-opacity: 0.001;
+  stroke-width: var(--gp-scroll-node-hit-width, 14);
+  vector-effect: non-scaling-stroke;
+  pointer-events: all;
+}
+
+.gp-scroll.is-free-graph .gp-scroll-edge.is-active {
+  stroke: #ef5350;
+  opacity: 0.82;
+}
+
+.gp-scroll.is-free-graph .gp-scroll-sheet {
+  fill: rgba(255, 255, 255, 0.9);
+}
+
+.gp-scroll-edge.is-active {
+  stroke: #ef5350;
+  opacity: 0.85;
+}
+
+.gp-scroll-edge.is-selected,
+.gp-scroll-edge.is-related {
+  stroke: #ef5350 !important;
+  opacity: 0.9 !important;
+}
+
+.gp-scroll-context-edge {
+  fill: none;
+  stroke: #9bd8ee;
+  stroke-linecap: round;
+  opacity: 0.3;
+  transition: opacity 120ms ease, stroke 120ms ease, stroke-width 120ms ease;
+}
+
+.gp-scroll-context-edge.is-active,
+.gp-scroll-context-edge.is-context-highlight {
+  stroke: #ff7878;
+  opacity: 0.9;
+}
+
+.gp-scroll-node {
+  cursor: pointer;
+}
+
+.gp-scroll-node polygon {
+  stroke: rgba(17, 17, 17, 0.28);
+  stroke-width: 0.7;
+  filter: drop-shadow(0 1px 2px rgba(5, 72, 99, 0.12));
+}
+
+.gp-scroll.is-free-graph .gp-scroll-node polygon {
+  stroke: transparent;
+  stroke-width: 0;
+  filter: none;
+}
+
+.gp-scroll-node.is-active polygon {
+  stroke: #ef5350;
+  stroke-width: 1.4;
+}
+
+.gp-scroll-node.is-selected polygon,
+.gp-scroll-node.is-related polygon {
+  stroke: #ef5350 !important;
+  stroke-width: 1.6 !important;
+}
+
+.gp-scroll-node-label {
+  fill: #21313c;
+  font-size: 9px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.gp-scroll-stream {
+  fill-opacity: 0.6;
+  stroke: rgba(255, 255, 255, 0.65);
+  stroke-width: 1;
+  transition: fill-opacity 120ms ease, stroke 120ms ease;
+}
+
+.gp-scroll-stream.is-active {
+  fill-opacity: 0.78;
+  stroke: #22313f;
+}
+
+.gp-scroll-bar-track {
+  fill: #eef5f6;
+  stroke: #d4e1e4;
+}
+
+.gp-scroll-bar-segment {
+  opacity: 0.72;
+  cursor: pointer;
+}
+
+.gp-scroll-bar-segment.is-active {
+  opacity: 0.95;
+  stroke: rgba(17, 17, 17, 0.35);
+  stroke-width: 1;
+}
+
+.gp-scroll-bar-label {
+  fill: #22313f;
+  font-size: 18px;
+  font-weight: 700;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.gp-scroll-prismviz .scroll-labell,
+.gp-scroll-prismviz .scroll-labelr {
+  display: none;
+}
+
+.d3-tip {
+  max-width: 340px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: rgba(24, 31, 36, 0.94);
+  box-shadow: 0 8px 20px rgba(5, 20, 28, 0.22);
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+  white-space: normal;
+}
+
+.gp-scroll-prismviz .myArea.gp-legacy-flux-active,
+.gp-scroll-prismviz .scroll-segmentl.gp-legacy-flux-active,
+.gp-scroll-prismviz .scroll-segmentr.gp-legacy-flux-active {
+  stroke: #22313f !important;
+  stroke-width: 4px !important;
+}
+
+.gp-scroll-prismviz .egroup-context.gp-legacy-context-highlight .epath {
+  stroke: #ef5350 !important;
+  stroke-opacity: 0.88 !important;
+  stroke-width: 8px !important;
+}
+
+.gp-scroll-prismviz .egroup-context .epath.gp-legacy-context-highlight {
+  stroke: #ef5350 !important;
+  stroke-opacity: 0.88 !important;
+  stroke-width: 8px !important;
+}
+
+.gp-scroll-prismviz .egroup-context.gp-legacy-context-highlight polygon {
+  fill: #ef5350 !important;
+  fill-opacity: 0.78 !important;
+}
+
+.gp-scroll-legacy-free .gp-scroll-free-overlay .gp-scroll-edge {
+  opacity: 1;
+}
+
+.gp-scroll-legacy-free .gp-scroll-free-overlay .gp-scroll-node polygon {
+  stroke: transparent;
+  stroke-width: 0;
+}
+
+.gp-scroll-legacy-free .gp-scroll-free-overlay .gp-scroll-node-label {
+  fill: #111111;
+}
+
+.gp-scroll-bar-count {
+  fill: #22313f;
+  font-size: 16px;
+  font-weight: 700;
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.gp-scroll-handle-wing,
+.gp-scroll-handle-core {
+  fill: url("#gp-scroll-handle-gradient");
+  filter: drop-shadow(0 2px 4px rgba(80, 43, 10, 0.24));
+}
+
+.gp-scroll-tooltip {
+  position: fixed;
+  z-index: 20;
+  max-width: 340px;
+  padding: 9px 11px;
+  border: 1px solid #c9dde1;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 20px rgba(5, 72, 99, 0.18);
+  color: #22313f;
+  font-size: 12px;
+  line-height: 1.45;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 100ms ease, transform 100ms ease, visibility 100ms ease;
+}
+
+.gp-scroll-tooltip.is-visible {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gp-scroll-tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.gp-scroll-graphviz-svg {
+  overflow: visible;
+}
+
+.gp-scroll-graphviz-svg .gp-scroll-node.is-active polygon,
+.gp-scroll-graphviz-svg .gp-scroll-node.is-active ellipse,
+.gp-scroll-graphviz-svg .gp-scroll-node.is-active rect {
+  stroke: #ef5350 !important;
+  stroke-width: 1.3 !important;
+}
+
+.gp-scroll-graphviz-svg .gp-scroll-node.is-selected polygon,
+.gp-scroll-graphviz-svg .gp-scroll-node.is-selected ellipse,
+.gp-scroll-graphviz-svg .gp-scroll-node.is-selected rect,
+.gp-scroll-graphviz-svg .gp-scroll-node.is-related polygon,
+.gp-scroll-graphviz-svg .gp-scroll-node.is-related ellipse,
+.gp-scroll-graphviz-svg .gp-scroll-node.is-related rect {
+  stroke: #ef5350 !important;
+  stroke-width: 1.4 !important;
+}
+
+.gp-scroll-graphviz-svg .gp-scroll-edge-group.is-active path {
+  stroke: #ef5350 !important;
+  opacity: 0.82;
+}
+
+.gp-scroll-graphviz-svg .gp-scroll-edge-group.is-selected path,
+.gp-scroll-graphviz-svg .gp-scroll-edge-group.is-related path {
+  stroke: #ef5350 !important;
+  opacity: 0.9 !important;
+  stroke-width: 1.45 !important;
+}

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Client Prism Demo</title>
+  <link rel="stylesheet" href="../../../src/components/prism/prism.css">
+  <link rel="stylesheet" href="./sq-demo.css">
+  <style>
+    #prism-demo {
+      height: calc(100vh - 128px);
+      min-height: 680px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-shell">
+    <header class="demo-header">
+      <span>Prism Component Demo · Client Data</span>
+      <div class="demo-controls">
+        <label>
+          Face Width
+          <select id="width-mode">
+            <option value="weighted" selected>original weighted</option>
+            <option value="equal">equal width</option>
+          </select>
+        </label>
+        <label>
+          Slice Layout
+          <select id="face-layout">
+            <option value="free" selected>free graph</option>
+          </select>
+        </label>
+        <label>
+          Rotation
+          <select id="rotation-speed">
+            <option value="22.5" selected>1x</option>
+            <option value="45">2x</option>
+            <option value="67.5">3x</option>
+          </select>
+        </label>
+        <button id="rotation-toggle" type="button" aria-label="Pause rotation">⏸</button>
+      </div>
+    </header>
+    <main class="demo-main two-column">
+      <section class="component-card">
+        <div class="panel-title">Prism</div>
+        <div id="prism-demo"></div>
+      </section>
+      <section class="schema-card">
+        <h2>输入数据需求</h2>
+        <p>Prism 消费 active slices、slice 内部图，以及 slice 间聚合矩阵。客户数据默认无时间分层，因此默认使用 free graph，但仍通过同一套 <code>renderPrism()</code> 入口渲染。</p>
+        <pre><code>{
+  slices: [
+    { id, name, shortName, chordName, color, size }
+  ],
+  sliceGraphs: {
+    [sliceId]: {
+      nodes: [
+        { id, label, primarySliceId, time, impact }
+      ],
+      edges: [
+        { source, target, weight }
+      ]
+    }
+  },
+  chord: {
+    slices,
+    matrix: [
+      [0, 3, 2],
+      [1, 0, 4],
+      [5, 2, 0]
+    ]
+  },
+  colorMap: {
+    [sliceId]: color
+  }
+}</code></pre>
+        <h2>当前数据</h2>
+        <div id="metrics" class="sq-metrics"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../../example/viz-standalone.js"></script>
+  <script type="module">
+    import {renderPrism} from "../../../src/components/prism/Prism.js";
+    import {buildSqModels, renderMetrics} from "../demo-support/client-data.js";
+
+    const model = await buildSqModels();
+    const prismModel = {
+      ...model.prism,
+      slices: model.prism.slices.map(slice => ({
+        ...slice,
+        shortName: slice.name || slice.shortName,
+      })),
+    };
+    const widthMode = document.querySelector("#width-mode");
+    const faceLayout = document.querySelector("#face-layout");
+    const speed = document.querySelector("#rotation-speed");
+    const toggle = document.querySelector("#rotation-toggle");
+    const state = {
+      paused: false,
+      speed: Number(speed.value),
+      rotationX: -25,
+      rotationY: -34,
+      translationX: 0,
+      translationY: -28,
+      scale: 1,
+    };
+    let instance = null;
+
+    function renderDemoMetrics() {
+      renderMetrics("#metrics", [
+        ["slices", model.slices.length],
+        ["entities", model.metrics.entityCount],
+        ["relations", model.metrics.relationCount],
+        ["layout", faceLayout.value],
+      ]);
+    }
+
+    function syncFromInstance() {
+      const next = instance?.controller?.getState?.();
+      if (!next) return;
+      state.rotationX = next.rotationX;
+      state.rotationY = next.rotationY;
+      state.translationX = next.translationX;
+      state.translationY = next.translationY;
+      state.scale = next.scale;
+      state.paused = !next.autoRotate || next.rotationSpeed === 0;
+      state.speed = next.rotationSpeed || state.speed;
+    }
+
+    function syncRotationButton() {
+      toggle.classList.toggle("is-active", state.paused);
+      toggle.textContent = state.paused ? "▶" : "⏸";
+      toggle.setAttribute("aria-label", state.paused ? "Resume rotation" : "Pause rotation");
+    }
+
+    function render() {
+      syncFromInstance();
+      instance?.destroy();
+      instance = renderPrism("#prism-demo", prismModel, {
+        widthMode: widthMode.value,
+        rotationX: state.rotationX,
+        rotationY: state.rotationY,
+        translationX: state.translationX,
+        translationY: state.translationY,
+        scale: state.scale,
+        rotationSpeed: state.paused ? 0 : state.speed,
+        minScale: 0.62,
+        maxScale: 4.8,
+        maxFaceNodes: 150,
+        maxFreeFaceNodes: 96,
+        maxFaceEdges: 170,
+        capArcThickness: 26,
+        faceGraphLayoutMode: faceLayout.value,
+        useGraphvizLayout: true,
+        nodeShape: "hexagon",
+        tagFontSize: 14,
+        tagMaxWidth: 220,
+        tagMinWidth: 72,
+        faceTitleFontSize: 18,
+        autoRotate: !state.paused,
+        rotateOnTagClick: true,
+        showTags: true,
+        showCaps: true,
+      });
+      syncRotationButton();
+      renderDemoMetrics();
+    }
+
+    widthMode.addEventListener("change", render);
+    faceLayout.addEventListener("change", render);
+    speed.addEventListener("change", () => {
+      state.speed = Number(speed.value);
+      state.paused = false;
+      instance?.controller?.setRotationSpeed?.(state.speed);
+      instance?.controller?.setAutoRotate?.(true);
+      syncRotationButton();
+    });
+    toggle.addEventListener("click", () => {
+      state.paused = !state.paused;
+      instance?.controller?.setRotationSpeed?.(state.paused ? 0 : state.speed);
+      instance?.controller?.setAutoRotate?.(!state.paused);
+      syncRotationButton();
+    });
+    render();
+  </script>
+</body>
+</html>

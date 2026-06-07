@@ -1,0 +1,20 @@
+{
+  "entityThreshold": 0.5,
+  "relationThreshold": 0.5,
+  "sliceThreshold": 0.55,
+  "removeSpecial": "1",
+  "removeIsolated": "0",
+  "sliceWeightTopK": 3,
+  "layoutMode": "time-layered",
+  "scrollRenderer": "layered-scroll",
+  "prism": {
+    "rotationSpeed": 1,
+    "sliceLabelScale": 100,
+    "entityNodeShape": "hexagon"
+  },
+  "scroll": {
+    "showStreams": true,
+    "showContextBars": true,
+    "showEntityLabels": true
+  }
+}

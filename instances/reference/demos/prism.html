@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Prism Demo</title>
+  <link rel="stylesheet" href="../../../src/components/prism/prism.css">
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #f5fafa;
+      color: #22313f;
+      font-family: Arial, sans-serif;
+    }
+
+    .demo-shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .demo-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    .demo-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .demo-header label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .demo-header select,
+    .demo-header button {
+      min-width: 230px;
+      padding: 6px 8px;
+      border: 1px solid #d7e5e8;
+      background: white;
+      color: #22313f;
+      font: inherit;
+    }
+
+    .demo-header button {
+      min-width: auto;
+      padding-inline: 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    #rotation-toggle {
+      width: 36px;
+      min-width: 36px;
+      height: 32px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-size: 16px;
+    }
+
+    .demo-header button.is-active {
+      background: #d7eef1;
+    }
+
+    .demo-main {
+      display: grid;
+      grid-template-columns: minmax(780px, 1fr) 430px;
+      gap: 18px;
+      min-height: 0;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .component-card,
+    .schema-card {
+      min-height: 0;
+      border: 1px solid #d7e5e8;
+      background: white;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(5, 72, 99, 0.12);
+    }
+
+    .panel-title {
+      padding: 16px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    #prism-demo {
+      height: calc(100vh - 128px);
+      min-height: 680px;
+    }
+
+    .schema-card {
+      overflow: auto;
+      padding: 18px 22px;
+      line-height: 1.6;
+    }
+
+    .schema-card pre {
+      overflow: auto;
+      padding: 14px;
+      background: #f5fafa;
+      border: 1px solid #d7e5e8;
+      font-size: 12px;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      padding: 8px 0;
+      border-bottom: 1px solid #e7eff1;
+    }
+
+    .metric-row strong {
+      color: #054863;
+    }
+
+    @media (max-width: 1180px) {
+      .demo-main {
+        grid-template-columns: 1fr;
+      }
+
+      #prism-demo {
+        height: 720px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-shell">
+    <div class="demo-header">
+      <span>Prism Component Demo</span>
+      <div class="demo-controls">
+        <label>
+          Face Width
+          <select id="width-mode">
+            <option value="weighted" selected>original weighted</option>
+            <option value="equal">equal width</option>
+          </select>
+        </label>
+        <label>
+          Slice Layout
+          <select id="face-layout">
+            <option value="time" selected>time layered</option>
+            <option value="free">free graph</option>
+          </select>
+        </label>
+        <label>
+          Rotation
+          <select id="rotation-speed">
+            <option value="22.5" selected>1x</option>
+            <option value="45">2x</option>
+            <option value="67.5">3x</option>
+          </select>
+        </label>
+        <button id="rotation-toggle" type="button" aria-label="Pause rotation">⏸</button>
+      </div>
+    </div>
+    <main class="demo-main">
+      <section class="component-card">
+        <div class="panel-title">Prism</div>
+        <div id="prism-demo"></div>
+      </section>
+      <section class="schema-card">
+        <h2>输入数据需求</h2>
+        <p>Prism 消费 active slices、slice 内部图，以及 slice 间聚合矩阵。组件内部负责把输入数据绘制成柱体、柱面缩略图、上方 Chord 盖和下方封底。</p>
+        <pre><code>{
+  slices: [
+    { id, name, shortName, chordName, color, size }
+  ],
+  sliceGraphs: {
+    [sliceId]: {
+      nodes: [
+        { id, label, primarySliceId, time, impact }
+      ],
+      edges: [
+        { source, target, weight }
+      ]
+    }
+  },
+  chord: {
+    slices,
+    matrix: [
+      [0, 3, 2],
+      [1, 0, 4],
+      [5, 2, 0]
+    ]
+  },
+  colorMap: {
+    [sliceId]: color
+  }
+}</code></pre>
+        <h2>当前 demo</h2>
+        <div id="metrics"></div>
+        <p><code>original weighted</code> 默认复刻原版 <code>drawGeneticPrism()</code> 的柱面宽度规则：先取关系矩阵行和，再执行 <code>adjustWeight</code> 保底，最后用权重对应角度算每个柱面的弦长。Prism 会按容器实际尺寸推导柱体半径、高度和盖板厚度。</p>
+        <p><code>equal width</code> 使用等权重，便于对比和后续业务场景固定版式。<code>time layered</code> 让 Slice 缩略图使用时间层次，<code>free graph</code> 则不依赖时间字段。Prism 内部保留自动旋转、拖动旋转、滚轮缩放和标签 hover bubble；这些交互不触发其它组件。</p>
+      </section>
+    </main>
+  </div>
+
+  <script src="../../../example/viz-standalone.js"></script>
+  <script type="module">
+    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+    import {renderPrism} from "../../../src/components/prism/Prism.js";
+
+    function renderMetrics(model) {
+      const metrics = document.querySelector("#metrics");
+      metrics.innerHTML = "";
+      [
+        ["active slices", model.slices.length],
+        ["entities", model.metrics.entityCount],
+        ["relations", model.metrics.relationCount],
+        ["matrix", `${model.chord.matrix.length} x ${model.chord.matrix.length}`],
+      ].forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "metric-row";
+        row.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+        metrics.appendChild(row);
+      });
+    }
+
+    const model = await loadReferenceDemoModels();
+    const widthSelect = document.querySelector("#width-mode");
+    const faceLayoutSelect = document.querySelector("#face-layout");
+    const speedSelect = document.querySelector("#rotation-speed");
+    const rotationToggle = document.querySelector("#rotation-toggle");
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("layout") === "free" || params.get("face") === "free") faceLayoutSelect.value = "free";
+    if (params.get("width") === "equal") widthSelect.value = "equal";
+    const rotationState = {
+      paused: false,
+      speed: Number(speedSelect.value),
+      rotationX: -25,
+      rotationY: -34,
+      translationX: 0,
+      translationY: -28,
+      scale: 1,
+    };
+    let instance = null;
+
+    renderMetrics(model);
+
+    function syncRotationFromInstance() {
+      const state = instance?.controller?.getState?.();
+      if (!state) return;
+      rotationState.rotationX = state.rotationX;
+      rotationState.rotationY = state.rotationY;
+      rotationState.translationX = state.translationX;
+      rotationState.translationY = state.translationY;
+      rotationState.scale = state.scale;
+      rotationState.paused = !state.autoRotate || state.rotationSpeed === 0;
+    }
+
+    function syncRotationButton() {
+      rotationToggle.classList.toggle("is-active", rotationState.paused);
+      rotationToggle.textContent = rotationState.paused ? "▶" : "⏸";
+      rotationToggle.setAttribute("aria-label", rotationState.paused ? "Resume rotation" : "Pause rotation");
+    }
+
+    function render() {
+      syncRotationFromInstance();
+      if (instance) instance.destroy();
+      instance = renderPrism("#prism-demo", model.prism, {
+        widthMode: widthSelect.value,
+        rotationX: rotationState.rotationX,
+        rotationY: rotationState.rotationY,
+        translationX: rotationState.translationX,
+        translationY: rotationState.translationY,
+        scale: rotationState.scale,
+        rotationSpeed: rotationState.paused ? 0 : rotationState.speed,
+        minScale: 0.62,
+        maxScale: 4.8,
+        maxFaceNodes: 150,
+        maxFreeFaceNodes: 96,
+        maxFaceEdges: 170,
+        capArcThickness: 26,
+        nodeShape: "hexagon",
+        tagFontSize: 14,
+        tagMaxWidth: 156,
+        faceTitleFontSize: 18,
+        faceGraphLayoutMode: faceLayoutSelect.value,
+        useGraphvizLayout: true,
+        autoRotate: !rotationState.paused,
+        rotateOnTagClick: true,
+        showTags: true,
+        showCaps: true,
+      });
+      syncRotationButton();
+    }
+
+    widthSelect.addEventListener("change", render);
+    faceLayoutSelect.addEventListener("change", render);
+    speedSelect.addEventListener("change", event => {
+      rotationState.speed = Number(event.target.value);
+      rotationState.paused = false;
+      syncRotationButton();
+      if (!instance?.controller) return;
+      instance.controller.setRotationSpeed(rotationState.speed);
+      instance.controller.setAutoRotate(true);
+    });
+    rotationToggle.addEventListener("click", () => {
+      if (!instance?.controller) return;
+      rotationState.paused = !rotationState.paused;
+      syncRotationButton();
+      instance.controller.setRotationSpeed(rotationState.paused ? 0 : rotationState.speed);
+      instance.controller.setAutoRotate(!rotationState.paused);
+    });
+    render();
+  </script>
+</body>
+</html>

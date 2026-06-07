@@ -1,0 +1,158 @@
+[
+  {
+    "id": "tree_root_25180",
+    "parentId": "-1",
+    "level": 0,
+    "name": "集成电路"
+  },
+  {
+    "id": "slice_25181",
+    "parentId": "tree_root_25180",
+    "level": 1,
+    "name": "半导体材料"
+  },
+  {
+    "id": "slice_25238",
+    "parentId": "tree_root_25180",
+    "level": 1,
+    "name": "EDA/IP核"
+  },
+  {
+    "id": "slice_25241",
+    "parentId": "tree_root_25180",
+    "level": 1,
+    "name": "半导体设备"
+  },
+  {
+    "id": "slice_25306",
+    "parentId": "tree_root_25180",
+    "level": 1,
+    "name": "晶圆制造"
+  },
+  {
+    "id": "slice_25351",
+    "parentId": "tree_root_25180",
+    "level": 1,
+    "name": "Fabless设计"
+  },
+  {
+    "id": "slice_25416",
+    "parentId": "tree_root_25180",
+    "level": 1,
+    "name": "封测"
+  },
+  {
+    "id": "tree_25182",
+    "parentId": "slice_25181",
+    "level": 2,
+    "name": "晶圆基础材料"
+  },
+  {
+    "id": "tree_25209",
+    "parentId": "slice_25181",
+    "level": 2,
+    "name": "晶圆制造材料"
+  },
+  {
+    "id": "tree_25227",
+    "parentId": "slice_25181",
+    "level": 2,
+    "name": "后道封装材料"
+  },
+  {
+    "id": "tree_25237",
+    "parentId": "slice_25181",
+    "level": 2,
+    "name": "其他集成电路材料"
+  },
+  {
+    "id": "tree_25239",
+    "parentId": "slice_25238",
+    "level": 2,
+    "name": "EDA"
+  },
+  {
+    "id": "tree_25240",
+    "parentId": "slice_25238",
+    "level": 2,
+    "name": "IP核"
+  },
+  {
+    "id": "tree_25242",
+    "parentId": "slice_25241",
+    "level": 2,
+    "name": "硅片加工设备"
+  },
+  {
+    "id": "tree_25249",
+    "parentId": "slice_25241",
+    "level": 2,
+    "name": "晶圆制造设备"
+  },
+  {
+    "id": "tree_25270",
+    "parentId": "slice_25241",
+    "level": 2,
+    "name": "封测设备"
+  },
+  {
+    "id": "tree_25307",
+    "parentId": "slice_25306",
+    "level": 2,
+    "name": "数字芯片制造"
+  },
+  {
+    "id": "tree_25317",
+    "parentId": "slice_25306",
+    "level": 2,
+    "name": "专用芯片制造"
+  },
+  {
+    "id": "tree_25318",
+    "parentId": "slice_25306",
+    "level": 2,
+    "name": "模拟芯片制造"
+  },
+  {
+    "id": "tree_25324",
+    "parentId": "slice_25306",
+    "level": 2,
+    "name": "特设工艺芯片制造"
+  },
+  {
+    "id": "tree_25350",
+    "parentId": "slice_25306",
+    "level": 2,
+    "name": "IDM制造"
+  },
+  {
+    "id": "tree_25352",
+    "parentId": "slice_25351",
+    "level": 2,
+    "name": "数字芯片设计"
+  },
+  {
+    "id": "tree_25371",
+    "parentId": "slice_25351",
+    "level": 2,
+    "name": "模拟芯片设计"
+  },
+  {
+    "id": "tree_25391",
+    "parentId": "slice_25351",
+    "level": 2,
+    "name": "混合集成电路设计"
+  },
+  {
+    "id": "tree_25417",
+    "parentId": "slice_25416",
+    "level": 2,
+    "name": "封装"
+  },
+  {
+    "id": "tree_25434",
+    "parentId": "slice_25416",
+    "level": 2,
+    "name": "测试"
+  }
+]

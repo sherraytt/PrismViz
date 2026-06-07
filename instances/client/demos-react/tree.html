@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Client Tree React Demo</title>
+  <link rel="stylesheet" href="../../../src/components/tree/tree.css">
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <link rel="stylesheet" href="./react-demo.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="react-root"></div>
+  <script type="module">
+    import React, {useCallback, useEffect, useState} from "react";
+    import {createRoot} from "react-dom/client";
+    import {ReactTree} from "../../../src/components/tree/Tree.react.js";
+    import {ReactList} from "../../../src/components/list/List.react.js";
+    import {buildSqModels, detailRows} from "../demo-support/client-data.js";
+
+    const e = React.createElement;
+
+    function TreeReactDemo() {
+      const [model, setModel] = useState(null);
+      const [detail, setDetail] = useState({hint: "点击树节点查看详情"});
+
+      useEffect(() => {
+        let cancelled = false;
+        buildSqModels().then(nextModel => {
+          if (cancelled) return;
+          setModel(nextModel);
+          setDetail({
+            slices: nextModel.slices.length,
+            hierarchyRows: nextModel.tree.rows.length,
+          });
+        }).catch(error => setDetail({error: error.message}));
+        return () => {
+          cancelled = true;
+        };
+      }, []);
+
+      const handleSelect = useCallback(node => {
+        setDetail(detailRows(model, node, {type: "tree"}));
+      }, [model]);
+
+      return e("div", {className: "demo-shell"},
+        e("header", {className: "demo-header"},
+          e("span", null, "Tree Component Demo · Client Data · React"),
+          e("span", null, "React call")
+        ),
+        e("main", {className: "demo-main"},
+          e("section", {className: "component-card"},
+            e("div", {className: "panel-title"}, "Tree"),
+            model
+              ? e(ReactTree, {
+                data: model.tree,
+                options: {maxLevel: 2, showCount: true},
+                onSelect: handleSelect,
+                className: "component-host",
+              })
+              : e("div", {className: "loading schema-body"}, "Loading client data...")
+          ),
+          e("section", {className: "schema-card detail-card"},
+            e("div", {className: "detail-header"}, e("h2", null, "List Panel")),
+            e("div", {className: "detail-body"}, e(ReactList, {
+              data: detail,
+              options: {mode: "json", numberPrecision: 4},
+            }))
+          )
+        )
+      );
+    }
+
+    createRoot(document.querySelector("#react-root")).render(e(TreeReactDemo));
+  </script>
+</body>
+</html>

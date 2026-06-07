@@ -1,0 +1,68 @@
+[
+  {
+    "id": "slice_25181",
+    "name": "半导体材料",
+    "shortName": "半导体材",
+    "description": "",
+    "levelName": "二级产业",
+    "meta": {
+      "产业代码": "INB130301",
+      "所属大类": "集成电路"
+    }
+  },
+  {
+    "id": "slice_25238",
+    "name": "EDA/IP核",
+    "shortName": "EDA/",
+    "description": "",
+    "levelName": "二级产业",
+    "meta": {
+      "产业代码": "INB130302",
+      "所属大类": "集成电路"
+    }
+  },
+  {
+    "id": "slice_25241",
+    "name": "半导体设备",
+    "shortName": "半导体设",
+    "description": "",
+    "levelName": "二级产业",
+    "meta": {
+      "产业代码": "INB130303",
+      "所属大类": "集成电路"
+    }
+  },
+  {
+    "id": "slice_25306",
+    "name": "晶圆制造",
+    "shortName": "晶圆制造",
+    "description": "",
+    "levelName": "二级产业",
+    "meta": {
+      "产业代码": "INB130304",
+      "所属大类": "集成电路"
+    }
+  },
+  {
+    "id": "slice_25351",
+    "name": "Fabless设计",
+    "shortName": "Fabl",
+    "description": "",
+    "levelName": "二级产业",
+    "meta": {
+      "产业代码": "INB130305",
+      "所属大类": "集成电路"
+    }
+  },
+  {
+    "id": "slice_25416",
+    "name": "封测",
+    "shortName": "封测",
+    "description": "",
+    "levelName": "二级产业",
+    "meta": {
+      "产业代码": "INB130306",
+      "所属大类": "集成电路"
+    }
+  }
+]

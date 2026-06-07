@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Prism React Demo</title>
+  <link rel="stylesheet" href="../../../src/components/prism/prism.css">
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <link rel="stylesheet" href="./react-demo.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="react-root"></div>
+  <script type="module">
+    import React, {useEffect, useMemo, useState} from "react";
+    import {createRoot} from "react-dom/client";
+    import {ReactPrism} from "../../../src/components/prism/Prism.react.js";
+    import {ReactList} from "../../../src/components/list/List.react.js";
+    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+
+    const e = React.createElement;
+
+    function PrismReactDemo() {
+      const [model, setModel] = useState(null);
+      const [widthMode, setWidthMode] = useState("weighted");
+      const [faceLayout, setFaceLayout] = useState("graphviz");
+      const [paused, setPaused] = useState(false);
+
+      useEffect(() => {
+        let cancelled = false;
+        loadReferenceDemoModels().then(nextModel => {
+          if (!cancelled) setModel(nextModel);
+        });
+        return () => {
+          cancelled = true;
+        };
+      }, []);
+
+      const options = useMemo(() => ({
+        widthMode,
+        rotationX: -25,
+        rotationY: -34,
+        translationY: -28,
+        minScale: 0.62,
+        maxScale: 4.8,
+        maxFaceNodes: 150,
+        maxFreeFaceNodes: 96,
+        maxFaceEdges: 170,
+        capArcThickness: 26,
+        nodeShape: "hexagon",
+        tagFontSize: 14,
+        tagMaxWidth: 156,
+        faceTitleFontSize: 18,
+        faceGraphLayoutMode: faceLayout,
+        useGraphvizLayout: true,
+        autoRotate: !paused,
+        rotationSpeed: paused ? 0 : 0.25,
+        rotateOnTagClick: true,
+        showTags: true,
+        showCaps: true,
+      }), [faceLayout, paused, widthMode]);
+
+      const metrics = model ? {
+        slices: model.slices.length,
+        entities: model.metrics.entityCount,
+        relations: model.metrics.relationCount,
+        layout: faceLayout,
+      } : {hint: "Loading reference data..."};
+
+      return e("div", {className: "demo-shell"},
+        e("header", {className: "demo-header"},
+          e("span", null, "Prism Component Demo · React"),
+          e("span", null, "React call")
+        ),
+        e("main", {className: "demo-main"},
+          e("section", {className: "component-card has-controls"},
+            e("div", {className: "panel-title"}, "Prism"),
+            e("div", {className: "component-controls"},
+              e("label", null, "Width ",
+                e("select", {value: widthMode, onChange: event => setWidthMode(event.target.value)},
+                  e("option", {value: "weighted"}, "weighted"),
+                  e("option", {value: "equal"}, "equal")
+                )
+              ),
+              e("label", null, "Face layout ",
+                e("select", {value: faceLayout, onChange: event => setFaceLayout(event.target.value)},
+                  e("option", {value: "graphviz"}, "graphviz"),
+                  e("option", {value: "free"}, "free")
+                )
+              ),
+              e("button", {type: "button", onClick: () => setPaused(value => !value)}, paused ? "Resume" : "Pause")
+            ),
+            model
+              ? e(ReactPrism, {data: model.prism, options, className: "component-host"})
+              : e("div", {className: "loading schema-body"}, "Loading reference data...")
+          ),
+          e("section", {className: "schema-card detail-card"},
+            e("div", {className: "detail-header"}, e("h2", null, "List Panel")),
+            e("div", {className: "detail-body"}, e(ReactList, {
+              data: metrics,
+              options: {mode: "json", numberPrecision: 4},
+            }))
+          )
+        )
+      );
+    }
+
+    createRoot(document.querySelector("#react-root")).render(e(PrismReactDemo));
+  </script>
+</body>
+</html>

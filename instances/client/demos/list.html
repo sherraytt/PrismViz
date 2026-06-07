@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Client List Demo</title>
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <link rel="stylesheet" href="./sq-demo.css">
+  <style>
+    #list-demo,
+    #detail {
+      height: calc(100vh - 126px);
+      min-height: 520px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-shell">
+    <header class="demo-header">
+      <span>List Component Demo · Client Data</span>
+    </header>
+    <main class="demo-main list-layout">
+      <section class="demo-panel">
+        <div class="panel-title">List</div>
+        <div id="list-demo"></div>
+      </section>
+      <section class="demo-panel">
+        <div class="panel-title">JSON / Table Info</div>
+        <div id="detail"></div>
+      </section>
+      <section class="schema-card">
+        <h2>输入数据需求</h2>
+        <p>List 是独立右侧信息块，输入什么就展示什么。它不关心 Scroll、Prism 或 Tree。</p>
+        <pre><code>{
+  items: [
+    { id, title, subtitle, value, color, raw }
+  ]
+}</code></pre>
+        <p>也可以直接输入任意对象，以 JSON / table 形式展示：</p>
+        <pre><code>{
+  id: "ent_001",
+  name: "企业 A",
+  score: 0.857142857
+}</code></pre>
+        <p>数字默认最多保留 4 位小数。点击左侧条目只更新本 demo 外层传给右侧 List 的数据。</p>
+        <h2>当前数据</h2>
+        <div id="metrics" class="sq-metrics"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import {renderList} from "../../../src/components/list/List.js";
+    import {buildSqModels, detailRows, renderMetrics} from "../demo-support/client-data.js";
+
+    const model = await buildSqModels();
+    renderMetrics("#metrics", [
+      ["items", model.list.items.length],
+      ["entities", model.metrics.entityCount],
+      ["relations", model.metrics.relationCount],
+    ]);
+    const detail = renderList("#detail", detailRows(model, model.list.items[0]?.raw || {}, {type: "entity"}), {
+      mode: "json",
+      numberPrecision: 4,
+    });
+
+    renderList("#list-demo", model.list, {
+      mode: "list",
+      titleField: "label",
+      valueField: "impact",
+      numberPrecision: 2,
+      onItemClick: item => {
+        detail.update(detailRows(model, item, {type: "entity"}), {
+          mode: "json",
+          numberPrecision: 4,
+        });
+      },
+    });
+  </script>
+</body>
+</html>

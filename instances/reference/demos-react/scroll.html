@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Scroll React Demo</title>
+  <link rel="stylesheet" href="../../../src/components/scroll/scroll.css">
+  <link rel="stylesheet" href="../../../src/components/prism/prism.css">
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="../../../example/viz-standalone.js"></script>
+  <script src="../../../example/viz-context.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client"
+      }
+    }
+  </script>
+  <style>
+    html,
+    body,
+    #react-root {
+      height: 100%;
+      margin: 0;
+      background: #f5fafa;
+      color: #22313f;
+      font-family: Arial, sans-serif;
+    }
+
+    .demo-shell {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .demo-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    .demo-controls {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .demo-header select {
+      min-width: 190px;
+      padding: 6px 8px;
+      border: 1px solid #d7e5e8;
+      background: white;
+      color: #22313f;
+      font: inherit;
+    }
+
+    .demo-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 430px;
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 18px;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .component-card,
+    .schema-card {
+      min-height: 0;
+      height: 100%;
+      border: 1px solid #d7e5e8;
+      background: white;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(5, 72, 99, 0.12);
+    }
+
+    .component-card {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .panel-title {
+      padding: 16px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    .react-note {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .scroll-demo-host {
+      height: 100%;
+      min-height: 0;
+    }
+
+    #slice-tags {
+      position: relative;
+      min-height: 82px;
+      padding: 10px 14px 12px;
+      border-top: 1px solid #e4eef0;
+      background: #fbfefe;
+      box-sizing: border-box;
+    }
+
+    #slice-tags .gp-prism-tags,
+    #slice-tags .gp-prism-tags-host {
+      position: static;
+      left: auto;
+      right: auto;
+      bottom: auto;
+      width: 100%;
+      transform: none;
+    }
+
+    #slice-tags .gp-prism-tag-tooltip {
+      z-index: 30;
+    }
+
+    .detail-card {
+      padding: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #054863;
+      color: white;
+    }
+
+    .detail-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .detail-close {
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.16);
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .detail-default {
+      min-height: 0;
+      padding: 18px 16px;
+      overflow: auto;
+      color: #22313f;
+      line-height: 1.6;
+    }
+
+    .detail-default h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .detail-default pre {
+      overflow: auto;
+      padding: 14px;
+      background: #f5fafa;
+      border: 1px solid #d7e5e8;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    #scroll-detail {
+      min-height: 0;
+      height: 100%;
+      overflow: auto;
+    }
+
+    .loading {
+      padding: 48px;
+      color: #6b7f89;
+    }
+
+    .legacy-host {
+      position: fixed;
+      left: -12000px;
+      top: 0;
+      width: 1200px;
+      height: 900px;
+      overflow: hidden;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    #middle-column,
+    #prismviz-draw-area,
+    #prismviz-prism-panel,
+    #prismviz-prism-container,
+    #prismviz-scroll-panel {
+      width: 1100px;
+      height: 780px;
+      position: relative;
+    }
+
+    #prismviz-prism {
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (max-width: 1180px) {
+      .demo-main {
+        grid-template-columns: 1fr;
+      }
+
+      .scroll-demo-host {
+        height: 660px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="react-root"></div>
+  <script type="module">
+    import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+    import {createRoot} from "react-dom/client";
+    import {ReactScroll} from "../../../src/components/scroll/Scroll.react.js";
+    import {legacyLayeredScroll} from "../../../src/components/scroll/legacyLayeredScroll.js";
+    import {ReactPrismSliceTags} from "../../../src/components/prism/Prism.react.js";
+    import {ReactList} from "../../../src/components/list/List.react.js";
+    import {createDetailRows} from "../../../src/detail/detail.js";
+    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+
+    const e = React.createElement;
+    const params = new URLSearchParams(window.location.search);
+
+    function InputDescription() {
+      return e("div", {className: "detail-default"},
+        e("h3", null, "输入数据需求"),
+        e("p", null, "Scroll React demo 使用 React 组件调用，组件内部仍消费同一份 slice 图数据。"),
+        e("pre", null, e("code", null, `{
+  slice: { id, name, shortName, color },
+  graph: {
+    nodes: [
+      { id, label, primarySliceId, sliceWeights, time, impact, meta }
+    ],
+    edges: [
+      { source, target, weight, label }
+    ],
+    contextEdges: [
+      { source, target, direction, sourceSliceId, targetSliceId, weight, time }
+    ]
+  },
+  slices: [
+    { id, name, shortName, color }
+  ],
+  colorMap: {
+    [sliceId]: color
+  }
+}`)),
+        e("p", null, "单击 Scroll 中的节点、边、轴段或 stream 后，会在这里通过 ReactList 展示详情。")
+      );
+    }
+
+    function LegacyHost() {
+      return e("div", {className: "legacy-host", "aria-hidden": "true"},
+        e("select", {id: "node-shape"}, e("option", {value: "3"}, "hexagon")),
+        e("select", {id: "mode"}, e("option", {value: "0"}, "Include"), e("option", {value: "1"}, "Exclude")),
+        e("select", {id: "remove-survey"}, e("option", {value: "1"}, "Exclude")),
+        e("span", {id: "node-num"}),
+        e("span", {id: "edge-num"}),
+        e("span", {id: "node-value"}),
+        e("span", {id: "edge-value"}),
+        e("span", {id: "entity-value"}),
+        e("span", {id: "relation-value"}),
+        e("div", {id: "tree"}),
+        e("div", {id: "chord"}),
+        e("div", {id: "prismviz-entity-list"}),
+        e("div", {id: "timeline"}),
+        e("div", {id: "node-info"}),
+        e("div", {id: "edge-info"}),
+        e("div", {id: "prismviz-slice-tags"}),
+        e("div", {id: "middle-column"},
+          e("div", {id: "prismviz-draw-area"},
+            e("div", {id: "prismviz-prism-panel"},
+              e("div", {id: "prismviz-prism-container"},
+                e("div", {id: "prismviz-prism"})
+              )
+            ),
+            e("div", {id: "prismviz-scroll-panel"})
+          )
+        )
+      );
+    }
+
+    function ScrollReactDemo() {
+      const [layoutMode, setLayoutMode] = useState(params.get("layout") === "free" ? "free-layout" : "layered-time");
+      const [removeIsolated, setRemoveIsolated] = useState(params.get("remove_isolated") === "1" ? "1" : "0");
+      const [models, setModels] = useState(null);
+      const [selectedSliceId, setSelectedSliceId] = useState("");
+      const [detail, setDetail] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const scrollInstanceRef = useRef(null);
+
+      useEffect(() => {
+        let cancelled = false;
+        async function prepareModels() {
+          setLoading(true);
+          const [viz, vizContext, nextModels] = await Promise.all([
+            window.Viz.instance(),
+            window.VizContext.instance(),
+            loadReferenceDemoModels({
+              config: {
+                remove_isolated: removeIsolated,
+                removeIsolated,
+              },
+            }),
+          ]);
+          if (cancelled) return;
+          const legacyConfig = {
+            ...nextModels.config,
+            remove_isolated: removeIsolated,
+            removeIsolated,
+            layoutMode: "layered-time",
+            scrollRenderer: "layered-scroll",
+            showStreams: true,
+            showContextBars: true,
+          };
+          const mode = document.querySelector("#mode");
+          if (mode) mode.value = removeIsolated;
+          legacyLayeredScroll.initialize({
+            data: nextModels,
+            fields: nextModels.slices,
+            config: legacyConfig,
+            viz,
+            vizContext,
+            layerGridStep: 2,
+          });
+          setModels(nextModels);
+          setSelectedSliceId(previous => {
+            const requested = params.get("slice");
+            const available = new Set(nextModels.slices.map(slice => String(slice.id)));
+            if (previous && available.has(String(previous))) return String(previous);
+            if (requested && available.has(String(requested))) return String(requested);
+            return String(nextModels.slices[0]?.id || "");
+          });
+          setDetail(null);
+          setLoading(false);
+        }
+        prepareModels().catch(error => {
+          console.error(error);
+          if (!cancelled) {
+            setLoading(false);
+            setDetail({title: "Load Error", rows: {error: error.message}});
+          }
+        });
+        return () => {
+          cancelled = true;
+        };
+      }, [removeIsolated]);
+
+      const scrollPalette = useMemo(() => {
+        if (!models) return [];
+        const sliceById = new Map(models.slices.map(slice => [String(slice.id), slice]));
+        return models.slices.map(slice => {
+          const id = String(slice.id);
+          const componentSlice = sliceById.get(id);
+          const color = models.colorMap?.[id] || componentSlice?.color || slice.color;
+          return {
+            ...slice,
+            id,
+            name: slice.name || componentSlice?.name || id,
+            shortName: slice.shortName || componentSlice?.shortName || slice.name || id,
+            color,
+          };
+        });
+      }, [models]);
+
+      const activeSliceId = selectedSliceId || String(models?.slices?.[0]?.id || "");
+      const isFreeGraph = layoutMode === "free-layout";
+      const scrollData = useMemo(() => {
+        if (!models || !activeSliceId) return null;
+        const scrollModel = models.scrollBySliceId[String(activeSliceId)];
+        if (!scrollModel) return null;
+        return {
+          ...scrollModel,
+          slices: scrollPalette,
+          colorMap: models.colorMap,
+          componentModels: models,
+        };
+      }, [models, activeSliceId, scrollPalette]);
+
+      const showDetail = useCallback((title, item, context = {}) => {
+        setDetail({
+          title,
+          rows: createDetailRows(models || {}, item, context),
+        });
+      }, [models]);
+
+      const scrollOptions = useMemo(() => ({
+        engine: isFreeGraph ? "svg" : "prismviz",
+        layoutMode: isFreeGraph ? "free-graph" : layoutMode,
+        scrollRenderer: isFreeGraph ? "graph" : "layered-scroll",
+        layerGridStep: 2,
+        withContext: true,
+        showStreams: true,
+        showContextEdges: !isFreeGraph,
+        reuseLegacyChrome: isFreeGraph,
+        freeGraphChrome: "unified",
+        legacyChromeModel: isFreeGraph ? scrollData : null,
+        freeGraphEngine: "graphviz",
+        freeGraphTimeRanks: false,
+        freeGraphTargetLayers: 20,
+        freeGraphLayerDensity: 1.8,
+        freeGraphAspect: 1.45,
+        activateVisType: false,
+        restoreState: false,
+        legacyLayeredApi: legacyLayeredScroll,
+        componentModels: models,
+        config: {
+          ...(models?.config || {}),
+          remove_isolated: removeIsolated,
+          removeIsolated,
+        },
+        slices: scrollPalette,
+        colorMap: models?.colorMap || {},
+      }), [isFreeGraph, layoutMode, models, removeIsolated, scrollData, scrollPalette]);
+
+      const tagOptions = useMemo(() => ({
+        activeSliceId,
+        balanceTagRows: true,
+        tagFontSize: 14,
+        colorMap: models?.colorMap || {},
+      }), [activeSliceId, models]);
+
+      const handleSelect = useCallback((item, context = {}) => {
+        if (context.type === "segment" || context.type === "stream") {
+          showDetail(context.type === "segment" ? "Scroll Segment" : "Stream Detail", item, {
+            type: context.type,
+            activeSliceId,
+            ...context,
+          });
+          return;
+        }
+        showDetail(context.type === "edge" ? "Edge Detail" : "Node Detail", context.edge || item, context);
+      }, [activeSliceId, showDetail]);
+
+      const handleSegmentSelect = useCallback((segment, context = {}) => {
+        showDetail("Scroll Segment", segment, {
+          type: "segment",
+          activeSliceId,
+          ...context,
+        });
+      }, [activeSliceId, showDetail]);
+
+      const handleStreamSelect = useCallback((stream, context = {}) => {
+        showDetail("Stream Detail", stream, {
+          type: "stream",
+          activeSliceId,
+          ...context,
+        });
+      }, [activeSliceId, showDetail]);
+
+      const handleReady = useCallback(instance => {
+        scrollInstanceRef.current = instance;
+      }, []);
+
+      const handleTagSelect = useCallback(slice => {
+        setSelectedSliceId(String(slice.id));
+        setDetail(null);
+      }, []);
+
+      return e("div", {className: "demo-shell"},
+        e("div", {className: "demo-header"},
+          e("span", null, "Scroll Component Demo · React"),
+          e("span", {className: "react-note"}, "React call"),
+          e("div", {className: "demo-controls"},
+            e("label", null,
+              "Layout ",
+              e("select", {
+                value: layoutMode,
+                onChange: event => {
+                  setLayoutMode(event.target.value);
+                  setDetail(null);
+                },
+              },
+                e("option", {value: "layered-time"}, "time layered"),
+                e("option", {value: "free-layout"}, "free graph")
+              )
+            ),
+            e("label", null,
+              "Remove isolated ",
+              e("select", {
+                value: removeIsolated,
+                onChange: event => setRemoveIsolated(event.target.value),
+              },
+                e("option", {value: "0"}, "keep"),
+                e("option", {value: "1"}, "remove")
+              )
+            )
+          )
+        ),
+        e("main", {className: "demo-main"},
+          e("section", {className: "component-card"},
+            e("div", {className: "panel-title"}, "Scroll"),
+            loading
+              ? e("div", {className: "loading"}, "Loading reference data...")
+              : e(ReactScroll, {
+                data: scrollData,
+                options: scrollOptions,
+                className: "scroll-demo-host",
+                onReady: handleReady,
+                onSelect: handleSelect,
+                onSegmentSelect: handleSegmentSelect,
+                onStreamSelect: handleStreamSelect,
+              }),
+            e("div", {id: "slice-tags", "aria-label": "Slice tags"},
+              models && e(ReactPrismSliceTags, {
+                slices: scrollPalette,
+                options: tagOptions,
+                onSelect: handleTagSelect,
+              })
+            )
+          ),
+          e("section", {className: "schema-card detail-card"},
+            e("div", {className: "detail-header"},
+              e("h2", null, detail?.title || "List Panel"),
+              e("button", {
+                className: "detail-close",
+                type: "button",
+                "aria-label": "Close detail panel",
+                onClick: () => setDetail(null),
+              }, "×")
+            ),
+            detail
+              ? e("div", {id: "scroll-detail"}, e(ReactList, {
+                data: detail.rows,
+                options: {mode: "json", numberPrecision: 4},
+              }))
+              : e(InputDescription)
+          )
+        ),
+        e(LegacyHost)
+      );
+    }
+
+    createRoot(document.querySelector("#react-root")).render(e(ScrollReactDemo));
+  </script>
+</body>
+</html>

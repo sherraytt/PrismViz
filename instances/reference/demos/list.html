@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism List Demo</title>
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #f5fafa;
+      font-family: Arial, sans-serif;
+    }
+
+    .demo-shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .demo-header {
+      grid-column: 1 / -1;
+      padding: 14px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    .demo-main {
+      display: grid;
+      grid-template-columns: minmax(340px, 420px) minmax(380px, 560px) minmax(0, 1fr);
+      gap: 18px;
+      min-height: 0;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .demo-panel,
+    .schema-card {
+      min-height: 0;
+      border: 1px solid #d7e5e8;
+      background: white;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(5, 72, 99, 0.12);
+    }
+
+    .panel-title {
+      padding: 16px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    .panel-body {
+      height: calc(100% - 51px);
+      min-height: 0;
+    }
+
+    .schema-card {
+      overflow: auto;
+      padding: 18px 22px;
+      line-height: 1.6;
+    }
+
+    .schema-card pre {
+      overflow: auto;
+      padding: 14px;
+      background: #f5fafa;
+      border: 1px solid #d7e5e8;
+    }
+
+    @media (max-width: 1180px) {
+      .demo-main {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-panel {
+        height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-shell">
+    <div class="demo-header">List Component Demo</div>
+    <main class="demo-main">
+      <section class="demo-panel">
+        <div class="panel-title">List</div>
+        <div id="entity-list" class="panel-body"></div>
+      </section>
+      <section class="demo-panel">
+        <div class="panel-title">JSON / Table Info</div>
+        <div id="detail-list" class="panel-body"></div>
+      </section>
+      <section class="schema-card">
+        <h2>输入数据需求</h2>
+        <p>List 是独立右侧信息块，输入什么就展示什么。它不关心 Scroll、Prism 或 Tree。</p>
+        <pre><code>{
+  items: [
+    { id, title, subtitle, value, color, raw }
+  ]
+}</code></pre>
+        <p>也可以直接输入任意对象，以 JSON / table 形式展示：</p>
+        <pre><code>{
+  id: "ent_001",
+  name: "企业 A",
+  score: 0.857142857
+}</code></pre>
+        <p>数字默认最多保留 4 位小数。点击左侧条目只更新本 demo 外层传给右侧 List 的数据。</p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+    import {renderList} from "../../../src/components/list/List.js";
+
+    const model = await loadReferenceDemoModels({
+      list: {limit: 80},
+    });
+
+    function toDetail(item) {
+      return {
+        id: item.id,
+        label: item.label,
+        primarySliceId: item.primarySliceId,
+        time: item.time,
+        importance: item.importance,
+        impact: item.impact,
+        description: item.description,
+        meta: item.meta,
+      };
+    }
+
+    const detail = renderList("#detail-list", toDetail(model.list.items[0].raw), {
+      mode: "json",
+      numberPrecision: 4,
+    });
+    renderList("#entity-list", model.list, {
+      mode: "list",
+      numberPrecision: 4,
+      onItemClick: item => detail.update(toDetail(item), {mode: "json", numberPrecision: 4}),
+    });
+  </script>
+</body>
+</html>

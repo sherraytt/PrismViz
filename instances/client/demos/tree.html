@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Client Tree Demo</title>
+  <link rel="stylesheet" href="../../../src/components/tree/tree.css">
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <link rel="stylesheet" href="./sq-demo.css">
+  <style>
+    #tree-demo {
+      height: calc(100vh - 126px);
+      min-height: 520px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-shell">
+    <header class="demo-header">
+      <span>Tree Component Demo · Client Data</span>
+    </header>
+    <main class="demo-main side-tree">
+      <section class="component-card">
+        <div class="panel-title">Tree</div>
+        <div id="tree-demo"></div>
+      </section>
+      <section class="schema-card">
+        <h2>输入数据需求</h2>
+        <p>Tree 默认消费通用层级数据，也可以直接用 slice 列表生成扁平目录。客户已有产业图谱时，可以直接传入外部 hierarchy。</p>
+        <pre><code>{
+  slices: [
+    { id, name, shortName, color, size }
+  ]
+}</code></pre>
+        <p>如果需要层级形式，也可以输入：</p>
+        <pre><code>{
+  hierarchy: [
+    { id, parentId, level, name, selectable, count, color }
+  ]
+}</code></pre>
+        <p>本 demo 使用 <code>model.tree</code>，展示外部 hierarchy 归一化后的切片目录。</p>
+        <h2>当前选择</h2>
+        <div id="detail" class="panel-body"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import {renderTree} from "../../../src/components/tree/Tree.js";
+    import {renderList} from "../../../src/components/list/List.js";
+    import {buildSqModels, detailRows} from "../demo-support/client-data.js";
+
+    const model = await buildSqModels();
+    const detail = renderList("#detail", {
+      hint: "点击树节点查看详情",
+      slices: model.slices.length,
+      hierarchyRows: model.tree.rows.length,
+    }, {mode: "json"});
+
+    renderTree("#tree-demo", model.tree, {
+      maxLevel: 2,
+      showCount: true,
+      onSelect: node => {
+        detail.update(detailRows(model, node, {type: "tree"}), {mode: "json"});
+      },
+    });
+  </script>
+</body>
+</html>

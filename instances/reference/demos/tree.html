@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Tree Demo</title>
+  <link rel="stylesheet" href="../../../src/components/tree/tree.css">
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #f5fafa;
+      font-family: Arial, sans-serif;
+    }
+
+    .demo-shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .demo-header {
+      padding: 14px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    .demo-main {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      gap: 18px;
+      min-height: 0;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+
+    .component-card,
+    .schema-card {
+      min-height: 0;
+      border: 1px solid #d7e5e8;
+      background: white;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(5, 72, 99, 0.12);
+    }
+
+    .panel-title {
+      padding: 16px 18px;
+      background: #054863;
+      color: white;
+      font-weight: 700;
+    }
+
+    #tree-demo {
+      height: 560px;
+    }
+
+    .schema-card {
+      overflow: auto;
+      padding: 18px 22px;
+      line-height: 1.6;
+    }
+
+    .schema-card pre {
+      overflow: auto;
+      padding: 14px;
+      background: #f5fafa;
+      border: 1px solid #d7e5e8;
+    }
+
+    @media (max-width: 900px) {
+      .demo-main {
+        grid-template-columns: 1fr;
+      }
+
+      #tree-demo {
+        height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-shell">
+    <div class="demo-header">Tree Component Demo</div>
+    <main class="demo-main">
+      <section class="component-card">
+        <div class="panel-title">Tree</div>
+        <div id="tree-demo"></div>
+      </section>
+      <section class="schema-card">
+        <h2>输入数据需求</h2>
+        <p>Tree 默认消费通用层级数据，也可以直接用 slice 列表生成扁平目录。甲方已有产业图谱时，可以直接传入外部 hierarchy。</p>
+        <pre><code>{
+  slices: [
+    { id, name, shortName, color, size }
+  ]
+}</code></pre>
+        <p>如果需要层级形式，也可以输入：</p>
+        <pre><code>{
+  hierarchy: [
+    { id, parentId, level, name, selectable, count, color }
+  ]
+}</code></pre>
+        <p>本 demo 使用 <code>model.tree</code>，展示外部 hierarchy 归一化后的切片目录。</p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+    import {renderTree} from "../../../src/components/tree/Tree.js";
+
+    const model = await loadReferenceDemoModels();
+
+    renderTree("#tree-demo", model.tree, {
+      maxLevel: 2,
+      showCount: true,
+      onSelect: node => console.log("Tree selected:", node),
+    });
+  </script>
+</body>
+</html>

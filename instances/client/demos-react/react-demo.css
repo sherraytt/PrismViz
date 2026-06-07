@@ -1,0 +1,190 @@
+html,
+body,
+#react-root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #f5fafa;
+  color: #22313f;
+  font-family: Arial, sans-serif;
+}
+
+.demo-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #054863;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.demo-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.demo-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-controls select,
+.demo-controls button {
+  min-width: 120px;
+  padding: 6px 8px;
+  border: 1px solid #d7e5e8;
+  background: #ffffff;
+  color: #22313f;
+  font: inherit;
+}
+
+.demo-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 18px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.component-card,
+.schema-card {
+  min-height: 0;
+  height: 100%;
+  border: 1px solid #d7e5e8;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(5, 72, 99, 0.12);
+}
+
+.component-card,
+.schema-card,
+.detail-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.component-card.has-controls {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.panel-title,
+.detail-header {
+  padding: 14px 16px;
+  background: #054863;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.detail-close {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.component-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e4eef0;
+  background: #fbfefe;
+}
+
+.component-host,
+.detail-body,
+.schema-body {
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+}
+
+.schema-body,
+.detail-empty {
+  padding: 18px 16px;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+.schema-body pre,
+.detail-empty pre {
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid #d7e5e8;
+  background: #f5fafa;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.loading,
+.detail-empty {
+  color: #5f727c;
+}
+
+.metric-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e7eff1;
+}
+
+.metric-row strong {
+  color: #054863;
+}
+
+@media (max-width: 1180px) {
+  .demo-shell {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .demo-main {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+
+  .component-card,
+  .schema-card {
+    min-height: 520px;
+  }
+}

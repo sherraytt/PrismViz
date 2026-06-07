@@ -1,0 +1,17 @@
+{
+  "authorID": "2147343253",
+  "authorName": "Daniel A. Keim",
+  "authors": 5015,
+  "edge_prob": 0.5,
+  "icon": "fas fa-eye icon",
+  "links": 88669,
+  "name": "Visualization",
+  "node_prob": 0.5,
+  "node_width": 10,
+  "papers": 75813,
+  "remove_isolated": "0",
+  "remove_survey": "1",
+  "topic": 70,
+  "topic_prob": 0.55,
+  "type": "CS Subfield"
+}

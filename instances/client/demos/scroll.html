@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Client Scroll Demo</title>
+  <link rel="stylesheet" href="../../../src/components/scroll/scroll.css">
+  <link rel="stylesheet" href="../../../src/components/prism/prism.css">
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <link rel="stylesheet" href="./sq-demo.css">
+  <style>
+    #scroll-demo {
+      height: calc(100vh - 230px);
+      min-height: 560px;
+    }
+
+    #slice-tags {
+      position: relative;
+      min-height: 82px;
+      padding: 10px 14px 12px;
+      border-top: 1px solid #e4eef0;
+      background: #fbfefe;
+      box-sizing: border-box;
+    }
+
+    #slice-tags .gp-prism-tags {
+      position: static;
+      left: auto;
+      right: auto;
+      bottom: auto;
+      width: 100%;
+      transform: none;
+    }
+
+    #detail {
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .sq-detail-hint {
+      padding: 18px 20px;
+      color: #5f727c;
+      line-height: 1.6;
+      border-bottom: 1px solid #e4eef0;
+    }
+  </style>
+</head>
+<body class="sq-scroll-page">
+  <div class="demo-shell">
+    <header class="demo-header">
+      <span>Scroll Component Demo · Client Data</span>
+      <div class="demo-controls">
+        <label>
+          Layout
+          <select id="layout-select">
+            <option value="free-layout" selected>free graph</option>
+          </select>
+        </label>
+        <label>
+          Remove isolated
+          <select id="remove-isolated">
+            <option value="0" selected>keep</option>
+            <option value="1">remove</option>
+          </select>
+        </label>
+      </div>
+    </header>
+    <main class="demo-main two-column">
+      <section class="component-card">
+        <div class="panel-title" id="scroll-title">Scroll</div>
+        <div id="scroll-demo"></div>
+        <div id="slice-tags" aria-label="Slice tags"></div>
+      </section>
+      <section class="schema-card detail-card">
+        <div class="detail-header">
+          <h2 id="detail-title">List Panel</h2>
+          <button id="detail-close" class="detail-close" type="button" aria-label="Close detail panel">×</button>
+        </div>
+        <div class="detail-default" id="detail-default">
+          <h3>输入数据需求</h3>
+          <p>Scroll 消费一个 slice 的图数据，独立绘制卷轴图。客户数据默认使用 free graph 布局，并通过同一套 <code>renderScroll()</code> 入口渲染。</p>
+          <pre><code>{
+  slice: { id, name, shortName, color },
+  graph: {
+    nodes: [
+      { id, label, primarySliceId, sliceWeights, time, impact, meta }
+    ],
+    edges: [
+      { source, target, weight, label }
+    ],
+    contextEdges: [
+      { source, target, direction, sourceSliceId, targetSliceId, weight, time }
+    ]
+  },
+  slices: [
+    { id, name, shortName, color }
+  ],
+  colorMap: {
+    [sliceId]: color
+  }
+}</code></pre>
+          <p>单击 Scroll 中的节点或边后，会在这里用 List 组件展示固定详情；点右上角 × 回到输入说明。</p>
+        </div>
+        <div id="detail" hidden></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="../../../example/viz-standalone.js"></script>
+  <script src="../../../example/viz-context.js"></script>
+  <script type="module">
+    import {renderScroll} from "../../../src/components/scroll/Scroll.js";
+    import {legacyLayeredScroll} from "../../../src/components/scroll/legacyLayeredScroll.js";
+    import {renderList} from "../../../src/components/list/List.js";
+    import {renderPrismSliceTags} from "../../../src/components/prism/Prism.js";
+    import {
+      buildSqModels,
+      capScrollModelBySliceWeights,
+      detailRows,
+    } from "../demo-support/client-data.js";
+
+    const layoutSelect = document.querySelector("#layout-select");
+    const removeIsolatedSelect = document.querySelector("#remove-isolated");
+    const detailTitle = document.querySelector("#detail-title");
+    const detailClose = document.querySelector("#detail-close");
+    const detailDefault = document.querySelector("#detail-default");
+    const detailBody = document.querySelector("#detail");
+    const [legacyViz, legacyVizContext] = await Promise.all([
+      window.Viz.instance(),
+      window.VizContext.instance(),
+    ]);
+    let model = await buildSqModels({removeIsolated: removeIsolatedSelect.value});
+    let instance = null;
+    let tagInstance = null;
+    let selectedSliceId = "";
+    const detail = renderList("#detail", {
+      hint: "点击 Scroll 中的节点、边或卷轴查看详情",
+      layout: "free graph",
+    }, {mode: "json"});
+
+    function showRows(title, item = {}, context = {}) {
+      detailTitle.textContent = title;
+      detailDefault.hidden = true;
+      detailBody.hidden = false;
+      detail.update(detailRows(model, item, context), {mode: "json", numberPrecision: 4});
+    }
+
+    function initializeLegacyRuntime(nextModel = model) {
+      legacyLayeredScroll.initialize({
+        data: nextModel,
+        fields: nextModel.slices,
+        config: {
+          ...nextModel.config,
+          remove_isolated: removeIsolatedSelect.value,
+          removeIsolated: removeIsolatedSelect.value,
+          layoutMode: "layered-time",
+          scrollRenderer: "layered-scroll",
+        },
+        viz: legacyViz,
+        vizContext: legacyVizContext,
+        layerGridStep: 2,
+      });
+    }
+
+    function resetDetail() {
+      detailTitle.textContent = "List Panel";
+      detailDefault.hidden = false;
+      detailBody.hidden = true;
+    }
+
+    function detailTitleForContext(context = {}) {
+      if (context.type === "node") return "Node Detail";
+      if (context.type === "edge") return "Edge Detail";
+      if (context.type === "segment") return "Scroll Segment";
+      return "Scroll Detail";
+    }
+
+    function fillSlices() {
+      selectedSliceId = selectedSliceId && model.scrollBySliceId[selectedSliceId]
+        ? selectedSliceId
+        : String(model.slices[0]?.id || "");
+      tagInstance?.destroy();
+      tagInstance = renderPrismSliceTags("#slice-tags", model.slices.map(slice => ({
+        ...slice,
+        shortName: slice.name || slice.shortName,
+      })), {
+        activeSliceId: selectedSliceId,
+        balanceTagRows: true,
+        tagFontSize: 14,
+        colorMap: model.colorMap,
+      }, {
+        onSelect: slice => {
+          selectedSliceId = String(slice.id);
+          render();
+        },
+      });
+    }
+
+    function render() {
+      instance?.destroy();
+      resetDetail();
+      const sliceId = selectedSliceId || model.slices[0]?.id;
+      tagInstance?.setActiveSlice(sliceId);
+      const scrollModel = capScrollModelBySliceWeights(model, sliceId, 0);
+      const stats = scrollModel?.graph?.stats || {};
+      const sliceName = scrollModel?.slice?.name || sliceId;
+      const normalizedScrollModel = {
+        ...scrollModel,
+        slices: model.slices,
+        colorMap: model.colorMap,
+        componentModels: model,
+      };
+      document.querySelector("#scroll-title").textContent = `${sliceName} · ${stats.nodeCount || 0}/${stats.originalNodeCount || stats.nodeCount || 0} nodes`;
+      instance = renderScroll("#scroll-demo", normalizedScrollModel, {
+        engine: "svg",
+        layoutMode: layoutSelect.value === "free-layout" ? "free-graph" : "free-graph",
+        scrollRenderer: "graph",
+        reuseLegacyChrome: true,
+        freeGraphChrome: "unified",
+        legacyChromeModel: normalizedScrollModel,
+        legacyLayeredApi: legacyLayeredScroll,
+        componentModels: model,
+        config: {
+          ...model.config,
+          remove_isolated: removeIsolatedSelect.value,
+          removeIsolated: removeIsolatedSelect.value,
+        },
+        withContext: true,
+        showStreams: true,
+        freeGraphEngine: "graphviz",
+        freeGraphTimeRanks: false,
+        freeGraphTargetLayers: 20,
+        freeGraphLayerDensity: 1.8,
+        freeGraphAspect: 1.45,
+        showContextEdges: false,
+        slices: model.slices,
+        colorMap: model.colorMap,
+        onSegmentSelect: (item, context = {}) => {
+          instance?.highlightContextSlice?.(item?.sliceId, context.direction);
+          showRows("Scroll Segment", item, {type: "segment", ...context});
+        },
+        onSelect: (item, context = {}) => {
+          if (context.type === "node") {
+            instance?.highlightEntity?.(item?.id);
+          } else if (context.type === "edge") {
+            instance?.highlightRelation?.(context.edge || item);
+          } else if (context.type === "segment") {
+            instance?.highlightContextSlice?.(item?.sliceId, context.direction);
+          }
+          showRows(detailTitleForContext(context), item, context);
+        },
+      });
+    }
+
+    initializeLegacyRuntime(model);
+    fillSlices();
+    layoutSelect.addEventListener("change", render);
+    detailClose.addEventListener("click", resetDetail);
+    removeIsolatedSelect.addEventListener("change", async () => {
+      model = await buildSqModels({removeIsolated: removeIsolatedSelect.value});
+      initializeLegacyRuntime(model);
+      fillSlices();
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Index</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel='stylesheet' type='text/css' href="style.css">
+    
+    <!-- jQuery from CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
+    <script src="viz-standalone.js"></script>
+    <script src="viz-context.js"></script>
+    <script src="prismviz.js"></script>
+    
+    <style>
+        html, body {
+            overflow: hidden;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="screen-size-warning">
+        Please use a larger screen for a better visualization experience (iPad or desktop with width > 800px).
+    </div>
+    
+    <div class="container-fluid">
+        <div class="navigation" style="background-color: #054863; padding-top: 0.5%; padding-bottom: 0.5%; display:flex; align-items: center; justify-content:center;">
+            <div class="logo">
+                <a href="/"><img src="logo-G.png" width="63" height="63"></a>
+                <div id="field" style="display: inline-block;"><h1></h1></div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <!-- <div class="tool-panel" style="background-color: #f7f7f7; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px;"></div> -->
+        <div class="navigation" style="background-color: #f5fafa; padding: 6px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 0;">
+            <form id="update-info">
+                <table class="address" style="width: 100%; padding-top: 0px; color: #777; border-collapse: collapse;">
+                    <tr style="background: #F5FAFA!important;">
+                        <td >survey papers</td>
+                        <td >isolated papers</td>
+                        <td style="width: 13%;" id="node-value-label">#papers (nodes) <div class="question">
+                            <img src="question.png" alt="Question Icon" width="18px" height="18px">
+                            <span class="question-tip" style="font-size: 16px; opacity: 0.9;">
+                                Node filter: only display core nodes of current author (first author or more likely corresponding author).
+                            </span>
+                        </div></td>
+                        <td style="width: 13%;">#citations (edges) <div class="question">
+                            <img src="question.png" alt="Question Icon" width="18px" height="18px">
+                            <span class="question-tip" style="font-size: 16px; opacity: 0.9;">
+                                Edge filter: only display citation edges more likely to indicate research extensions.
+                            </span>
+                        </div></td>
+                        <td style="width: 13%;">topic similarity</td>
+                        <td style="width: 10%;">year grid</td>
+                        <td style="width: 14%;">rotation speed</td>
+                        <td style="width: 14%;">tag size</td>
+                        <!-- <td style="width: 12%;">focus edge weight</td>
+                        <td >edge bundling</td> -->
+                        <td >node shape</td>
+                    </tr>
+                    <tr style="background: #F5FAFA!important;">
+                        <td>
+                            <select id="remove-survey" class="form-select" name="removeSurvey">
+                                <option value="1">Exclude</option>
+                                <option value="0">Include</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select id="mode" class="form-select" name="mode">
+                                <option value="0">Include</option>
+                                <option value="2">Partial include</option>
+                                <option value="1">Exclude</option>
+                            </select>
+                        </td>
+                        <td>
+                            <!-- <span style="font-size:14px;">no filter</span> -->
+                            <div id="range-node" style="width: 60%; display: inline-block;"></div>
+                            <span id="node-value" style="color: #333; font-size:14px">>0.5 prob.</span>
+                        </td>
+                        <td>
+                            <!-- <span style="font-size:14px;">no filter</span> -->
+                            <div id="range-edge" style="width: 60%; display: inline-block;"></div>
+                            <span id="edge-value" style="color: #333; font-size:14px">>0.5 prob.</span>
+                        </td>
+                        <td>
+                            <!-- <span style="font-size:14px;">no filter</span> -->
+                            <div id="range-topic" style="width: 60%; display: inline-block;"></div>
+                            <span id="topic-value" style="color: #333; font-size:14px">>0.5 prob.</span>
+                        </td>
+                        <td>
+                            <select id="yearGrid" class="form-select" onchange="d3.prismViz.updateYearGrid()">
+                                <option value="1">1</option>
+                                <option value="2" selected>2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </td>
+                        <td>
+                            <div id="prism-speed-slot" style="width: 100%;"></div>
+                        </td>
+                        <td>
+                            <div id="tag-scale-slot" style="width: 100%;"></div>
+                        </td>
+                        <td>
+                            <select id="node-shape" class="form-select" name="node-shape">
+                                <option value="3" selected>hexagon</option>
+                                <option value="0">oval</option>
+                                <option value="1">box</option>
+                                <option value="2" >book</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                
+            </form>
+            <div class="clearfix"></div>
+        </div>
+        <div class="main-panel">
+            <div class="left-column" style="width: 23%;">
+                <div id="basic-info" class="address" style="padding-bottom: 20px; ">
+                    <div style="width: 100%; padding: 36px 16px 16px; background-color: #054863;">
+                        <p style="margin-left: 40px; color: white; font-size: 16px; font-weight: bold;">Topic Tree</p>
+                    </div>
+
+                    <div id="tree"></div>
+                    
+                </div>
+
+                <div id="chord-diagram" class="address">
+                    <div style="width: 100%; padding: 36px 16px 16px; background-color: #054863;">
+                        <p style="margin-left: 40px; color: white; font-size: 16px; font-weight: bold;">Chord Diagram</p>
+                    </div>
+                    <div id="chord" style="position: relative;"></div>
+                </div>
+            </div>
+            <!-- 中间面板 -->
+            <div id="middle-column" class="middle-column" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; position: relative; width: 55%;"></div>
+
+            <!-- 右侧面板 -->
+            <div class="right-column" style="width: 22%;">
+                <div id="paper-list" style="background-color: white;">
+                    <div style="width: 100%; padding: 36px 16px 16px; background-color: #054863;">
+                        <p style="margin-left: 40px; color: white; font-size: 16px; font-weight: bold;">Paper List</p>
+                    </div>
+                    <div id="timeline"></div>
+                </div>
+                <div id="node-info" class="detail-panel" style="display: none;">
+                    <div class="detail-header" style="width: 100%; padding: 36px 16px 16px; background-color: #054863; color: white; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
+                        <p style="margin: 0 0 0 24px; color: white; font-size: 16px; font-weight: bold;">Paper Info</p>
+                        <button type="button" onclick="d3.prismViz.reset_node(true)" style="border: none; border-radius: 999px; background: rgba(255,255,255,0.92); color: #054863; cursor: pointer; padding: 5px 12px; font-size: 12px; font-weight: 700;">Back</button>
+                    </div>
+                    <table class="detail-table">
+                        <tr>
+                            <th>paperID</th>
+                            <td id="paper-id"></td>
+                        </tr>
+                        <tr>
+                            <th>title</th>
+                            <td id="paper-name"></td>
+                        </tr>
+                        <tr>
+                            <th>authors</th>
+                            <td id="paper-authors"></td>
+                        </tr>
+                        <tr>
+                            <th>core paper prob.</th>
+                            <td id="paper-prob"></td>
+                        </tr>
+                        <tr>
+                            <th>venue</th>
+                            <td id="paper-venue"></td>
+                        </tr>
+                        <tr>
+                            <th>year</th>
+                            <td id="paper-year"></td>
+                        </tr>
+                        <tr>
+                            <th>#citation</th>
+                            <td id="paper-citation"></td>
+                        </tr>
+                        <tr>
+                            <th>topic</th>
+                            <td id="paper-field"></td>
+                        </tr>
+                        <tr>
+                            <th>Abstract</th>
+                            <td id="abstract"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="edge-info" class="detail-panel" style="display: none;">
+                    <div class="detail-header" style="width: 100%; padding: 36px 16px 16px; background-color: #054863; color: white; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
+                        <p style="margin: 0 0 0 24px; color: white; font-size: 16px; font-weight: bold;">Citation Relationship</p>
+                        <button type="button" onclick="d3.prismViz.reset_node(true)" style="border: none; border-radius: 999px; background: rgba(255,255,255,0.92); color: #054863; cursor: pointer; padding: 5px 12px; font-size: 12px; font-weight: 700;">Back</button>
+                    </div>
+                    <table class="detail-table">
+                        <tr>
+                            <th>extend prob.</th>
+                            <td id="extend-prob" colspan="2"></td>
+                        </tr>
+                        <tr>
+                            <th rowspan="4">cited paper</th>
+                            <td>title</td>
+                            <td id="source-paper"></td>
+                        </tr>
+                        <tr>
+                            <td>year</td>
+                            <td id="source-paper-year"></td>
+                        </tr>
+                        <tr>
+                            <td>venue</td>
+                            <td id="source-paper-venu"></td>
+                        </tr>
+                        <tr>
+                            <td>#citation</td>
+                            <td id="source-paper-citation"></td>
+                        </tr>
+                        <tr>
+                            <th rowspan="4">citing paper</th>
+                            <td>title</td>
+                            <td id="target-paper"></td>
+                        </tr>
+                        <tr>
+                            <td>year</td>
+                            <td id="target-paper-year"></td>
+                        </tr>
+                        <tr>
+                            <td>venue</td>
+                            <td id="target-paper-venu"></td>
+                        </tr>
+                        <tr>
+                            <td>#citation</td>
+                            <td id="target-paper-citation"></td>
+                        </tr>
+                        <tr>
+                            <th>citation context</th>
+                            <td id="citation-context" colspan="2"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+    
+    
+<script type="text/javascript">
+    // text1 paperLabel; text2 paperCount; text3 year; text4 field
+
+$(function () {
+    d3.prismViz.bindChordPanel("chord");
+    d3.prismViz.bindMainPanel("middle-column", {
+        onSelectTopic: (topicId, detail) => {
+            console.log("Prism topic selected:", topicId, detail.topic && detail.topic.shortName);
+        }
+    });
+    d3.prismViz.bindListPanel("timeline");
+    d3.csv("data/fields/field_leaves.csv").then(rows => {
+        d3.prismViz.bindTreePanel("tree", rows, {
+            maxLevel: 2,
+            onSelect: node => console.log("Tree selected:", node)
+        });
+    });
+    
+    fields = {
+        "0": "image ct brain medical surgical 3d",
+        "1": "virtual reality environment augment robot vr haptic ar interaction",
+        "2": "protein molecular gene biological analysis cell genome data",
+        "3": "power device method data module invention display information control visualization",
+        "4": "student learn teach data education big analytics mathematics visualization",
+        "5": "vortex flow cylinder wake reynolds wing turbulent layer boundary",
+        "6": "software code metric program evolution source system tool developer architecture",
+        "7": "surface mesh isosurface march algorithm cube implicit reconstruction",
+        "8": "neural image deep classification learn retrieval convolutional feature network semantic",
+        "9": "aircraft flight uav simulation unmanned aerial control vehicle mission",
+        "10": "parallel performance grid compute distribute debug execution scientific application program",
+        "11": "gi map spatial geographic geospatial information cartographic data geographical",
+        "12": "flow heat transfer liquid bubble convection boil phase gas channel",
+        "13": "geological seismic model coal 3d rock earthquake interpretation",
+        "14": "dimensionality cluster reduction data coordinate multidimensional parallel multivariate",
+        "15": "city building urban model 3d citygml gi",
+        "16": "research citation patent bibliometric analysis science knowledge literature china citespace",
+        "17": "flow fluid field streamline streamlines vector visualization particle",
+        "18": "terrain render dem elevation lod real algorithm 3d digital large",
+        "19": "social twitter sentiment network medium tweet analysis opinion user",
+        "20": "volume render volumetric ray transfer cast function gpu hardware direct",
+        "21": "patient health clinical medical care healthcare data ehr record",
+        "22": "jet flow nozzle impinge velocity mix turbulent vortex supersonic",
+        "23": "heritage cultural archaeological 3d museum digital virtual historical documentation archaeology",
+        "24": "video action summarization temporal content retrieval recognition semantic frame",
+        "25": "document text topic search corpus information word",
+        "26": "flood water river groundwater reservoir gi hydrological dam management simulation",
+        "27": "security attack network intrusion cyber detection traffic threat id",
+        "28": "graph planar draw drawing edge vertex orthogonal straight",
+        "29": "plant tree forest growth leaf root rice stand",
+        "30": "ocean marine coastal sonar sea underwater data oceanographic acoustic fish",
+        "31": "wave ultrasonic defect damage crack concrete acoustic stress",
+        "32": "music musical song audio sound piano listen musician rhythm",
+        "33": "traffic transportation mobility urban road travel taxi congestion bus data",
+        "34": "saliency salient detection attention visual object image region video propose",
+        "35": "bim building construction model management information project ifc design",
+        "36": "parallel render gpu graphic gpus sort processing memory load volume",
+        "37": "localization slam odometry visual place indoor robot camera recognition monocular",
+        "38": "series time temporal event data vary pattern visualization",
+        "39": "track tracker target object filter visual robust correlation siamese",
+        "40": "color colour image colormaps gamut colorization",
+        "41": "연구 위한 관한 이용한 개발 가시화 대한 flow 시스템 시각화",
+        "42": "som organize self map cluster data neural",
+        "43": "stereoscopic display depth image disparity 3d parallax",
+        "44": "driver vehicle road traffic lane car detection",
+        "45": "quality assessment video image cod iqa subjective reference distortion metric",
+        "46": "tag cloud word content text social",
+        "47": "ontology knowledge semantic ontological link web domain concept",
+        "48": "визуализации для на визуализация article данных educational как",
+        "49": "opengl graphic 3d program library api stl inventor",
+        "50": "sound acoustic audio noise auditory source microphone auralization",
+        "51": "imagery mental visual motor vividness memory perception cognitive sensory mind",
+        "52": "climate weather meteorological data atmospheric change rainfall forecast visualization tropical",
+        "53": "pareto optimization objective multiobjective evolutionary genetic decision solution problem",
+        "54": "matlab simulink fortran teach program toolbox simulation application software gui",
+        "55": "guide libguides resource library research data tool home visualization",
+        "56": "uncertainty ensemble visualization decision visualize data make",
+        "57": "conference proceeding paper symposium international acm seminar ieee graphic special",
+        "58": "covid 19 pandemic coronavirus epidemic spread disease outbreak case",
+        "59": "cloud point lidar laser 3d scan data airborne",
+        "60": "la en que el para se los da como del",
+        "61": "fuzzy logic set cluster evaluation membership rule base propose",
+        "62": "nc machining simulation opengl milling cnc cut grind cam machine",
+        "63": "graphic computer animation teach course cg interactive art application",
+        "64": "garment cloth collision clothing fabric detection knit yarn body",
+        "65": "для на визуализации системы та данных при основе article",
+        "66": "emotion emotional recognition affective audio multimodal speech facial feature",
+        "67": "face facial expression recognition feature age image",
+        "68": "collaborative collaboration team group support design work awareness distribute",
+        "69": "wildfire smoke forest simulation fight flame spread real base",
+        "70": "treemaps tree hierarchical node hierarchy layout space",
+        "71": "valve flow pulsatile heart blood aortic shear wall ventricular",
+        "72": "image fusion enhancement contrast infrared fuse low propose visible",
+        "73": "sport player soccer tennis football team game match",
+        "74": "eye track gaze movement fixation visual scanpath attention",
+        "75": "shadow light illumination photon scatter render radiance global caustic",
+        "76": "diffusion fiber tractography tensor dti white matter brain mri",
+        "77": "graph draw algorithm direct force layout spring drawing",
+        "78": "hologram holographic holography 3d display digital optical holoscopic cgh",
+        "79": "python package data amp library program numpy jupyter analysis book",
+        "80": "diagram euler venn diagrammatic reason spider logic circle set",
+        "81": "flame combustion fuel ignition burner premixed turbulent engine diesel",
+        "82": "za je na podataka dan yang dengan se sustav gt",
+        "83": "shock wave boundary layer mach flow supersonic pressure hypersonic",
+        "84": "piv particle velocimetry flow velocity image measurement technique",
+        "85": "simulation agent model ma simulator system network",
+        "86": "astronomical astronomy astrophysical cosmological universe galaxy astrophysics simulation observatory star",
+        "87": "spatio temporal spatiotemporal data time spatial space cube event information",
+        "88": "cavitation cavitating flow pressure nozzle valve pump cavity experimental inception",
+        "89": "magnetic field electromagnetic flux magneto distribution visualization measurement method",
+        "90": "graph node layout large edge link exploration direct",
+        "91": "secret cryptography image hiding share steganography scheme encryption security",
+        "92": "thermal thermography temperature infrared thermographic image ir camera heat",
+        "93": "energy building urban solar city thermal citygml comfort demand",
+        "94": "plasma particle simulation tokamak east confinement fusion",
+        "95": "pipeline underground network gallery 3d urban dimensional",
+        "96": "texture synthesis texturing procedural surface render textured 3d mapping",
+        "97": "iot sensor cloud wireless thing internet wsn device network compute",
+        "98": "trajectory movement pattern data analytics object temporal spatio",
+        "99": "malware malicious phishing classification detection android attack sample learn code",
+        "100": "network node dynamic multilayer complex analysis layout large"
+    };
+    
+    config =  {"remove_survey": "1", "remove_isolated": "0","node_prob": 0.5,"edge_prob": 0.5, "topic_prob": 0.55, "node_width": 10, "name": "Visualization","icon": "fas fa-eye icon", "type": "CS Subfield","papers": 75813,"authors": 5015,"links": 88669,"topic": 70, "authorID": "2147343253", "authorName": "Daniel A. Keim"};
+
+    imgHeight = $("img").css("height");
+    $("#field").css("height", imgHeight);
+    $("#field").css("line-height", imgHeight);
+    $("#field h1").append(`<span>GeneticPrism - Visualization</span>`);
+    
+    nodeSlider = document.getElementById('range-node');
+    edgeSlider = document.getElementById('range-edge');
+    topicSlider = document.getElementById('range-topic');
+    noUiSlider.create(nodeSlider, {
+        start: config["node_prob"],
+        behaviour: 'tap',
+        connect: [false, true],
+        step: 0.01,
+        range: {'min': 0,'max': 1.0}
+    });
+    noUiSlider.create(edgeSlider, {
+        start: config["edge_prob"],
+        behaviour: 'tap',
+        connect: [false, true],
+        step: 0.01,
+        range: {'min': 0,'max': 1.0}
+    });
+    // $("#edge-value").text(">" + config["edge_prob"]);
+    noUiSlider.create(topicSlider, {
+        start: config["topic_prob"],
+        behaviour: 'tap',
+        connect: [false, true],
+        step: 0.01,
+        range: {'min': 0,'max': 1.0}
+    });
+    $("#topic-value").text(">" + config["topic_prob"]);
+    $('#remove-survey').value = config['remove_survey'];
+    $('#mode').value = config['remove_isolated'];
+    nodeSlider.noUiSlider.on("change", function () {
+        $("#node-value").text(">" + nodeSlider.noUiSlider.get());
+        d3.prismViz.updateNodeProb(nodeSlider.noUiSlider.get());
+    });
+    edgeSlider.noUiSlider.on("change", function () {
+        $("#edge-value").text(">" + edgeSlider.noUiSlider.get());
+        d3.prismViz.updateEdgeProb(edgeSlider.noUiSlider.get());
+    });
+    topicSlider.noUiSlider.on("change", function () {
+        $("#topic-value").text(">" + topicSlider.noUiSlider.get());
+        d3.prismViz.updateSliceThreshold(topicSlider.noUiSlider.get());
+    });
+
+    Viz.instance().then(function(v) {
+        VizContext.instance().then(function(vc) {
+            Promise.all([
+                d3.json("data/authors/2147343253.json"),
+                d3.json("data/fields/fields.json").catch(() => fields),
+                d3.json("data/fields/fields_meta.json").catch(() => ({})),
+                d3.json("data/configs/config.json").catch(() => config)
+            ]).then(([data, generatedFields, generatedFieldMeta, generatedConfig]) => {
+                fields = generatedFields;
+                config = {...config, ...generatedConfig};
+                d3.prismViz.loadData(data, fields, config, v, vc, generatedFieldMeta);
+            });
+        });
+    });
+});
+
+
+
+</script>
+</body>
+</html>

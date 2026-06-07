@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GeneticPrism Chord React Demo</title>
+  <link rel="stylesheet" href="../../../src/components/chord/chord.css">
+  <link rel="stylesheet" href="../../../src/components/list/list.css">
+  <link rel="stylesheet" href="./react-demo.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="react-root"></div>
+  <script type="module">
+    import React, {useCallback, useEffect, useState} from "react";
+    import {createRoot} from "react-dom/client";
+    import {ReactChord} from "../../../src/components/chord/Chord.react.js";
+    import {ReactList} from "../../../src/components/list/List.react.js";
+    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+
+    const e = React.createElement;
+
+    function ChordReactDemo() {
+      const [model, setModel] = useState(null);
+      const [detail, setDetail] = useState({hint: "点击弦图切片或关系查看详情"});
+
+      useEffect(() => {
+        let cancelled = false;
+        loadReferenceDemoModels().then(nextModel => {
+          if (cancelled) return;
+          setModel(nextModel);
+          setDetail({
+            slices: nextModel.slices.length,
+            entities: nextModel.metrics.entityCount,
+            relations: nextModel.metrics.relationCount,
+            matrix: `${nextModel.chord.matrix.length} x ${nextModel.chord.matrix.length}`,
+          });
+        }).catch(error => setDetail({error: error.message}));
+        return () => {
+          cancelled = true;
+        };
+      }, []);
+
+      const handleSelect = useCallback(item => {
+        setDetail({
+          id: item.id,
+          name: item.name || item.label,
+          source: item.source,
+          target: item.target,
+          weight: item.weight,
+          value: item.value,
+        });
+      }, []);
+
+      return e("div", {className: "demo-shell"},
+        e("header", {className: "demo-header"},
+          e("span", null, "Chord Component Demo · React"),
+          e("span", null, "React call")
+        ),
+        e("main", {className: "demo-main"},
+          e("section", {className: "component-card"},
+            e("div", {className: "panel-title"}, "Chord"),
+            model
+              ? e(ReactChord, {
+                data: model.chord,
+                options: {mode: "chord"},
+                onSelect: handleSelect,
+                className: "component-host",
+              })
+              : e("div", {className: "loading schema-body"}, "Loading reference data...")
+          ),
+          e("section", {className: "schema-card detail-card"},
+            e("div", {className: "detail-header"}, e("h2", null, "List Panel")),
+            e("div", {className: "detail-body"}, e(ReactList, {
+              data: detail,
+              options: {mode: "json", numberPrecision: 4},
+            }))
+          )
+        )
+      );
+    }
+
+    createRoot(document.querySelector("#react-root")).render(e(ChordReactDemo));
+  </script>
+</body>
+</html>
