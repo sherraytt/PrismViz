@@ -3,7 +3,7 @@
 // This file preserves the original non-module d3.prismViz entrypoint and is
 // intentionally allowed to read legacy academic-demo field names. New core
 // code, reusable components, and sqData demos must not import from this file or
-// copy its compatibility aliases; use src/adapters/legacyAcademic.js for module
+// copy its compatibility aliases; use src/adapters/reference.js for module
 // based legacy data conversion.
 
 // D3-HSV Color Space Functions

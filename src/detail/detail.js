@@ -119,8 +119,11 @@ function relationDisplayInfo(model = {}, relation = {}, options = {}) {
 }
 
 function normalizeRelationMeta(relation = {}) {
+  const numericRelationCount = Number(relation.relationCount);
   return {
-    relationCount: Number.isFinite(relation.relationCount) ? relation.relationCount : (Array.isArray(relation.relationIds) ? relation.relationIds.length : 1),
+    relationCount: Number.isFinite(numericRelationCount) && numericRelationCount > 0
+      ? numericRelationCount
+      : (Array.isArray(relation.relationIds) ? relation.relationIds.length : 1),
     types: Array.isArray(relation.types) && relation.types.length > 0
       ? relation.types
       : [relation.type || relation.relationType || "unknown"],
@@ -128,6 +131,56 @@ function normalizeRelationMeta(relation = {}) {
     relationIds: Array.isArray(relation.relationIds) ? relation.relationIds : [relation.id],
     relations: Array.isArray(relation.relations) ? relation.relations : [],
   };
+}
+
+function isMultiRelation(relationMeta = {}) {
+  return relationMeta.relationCount > 1 || relationMeta.relations.length > 1;
+}
+
+function relationTimeOf(relation = {}) {
+  return firstDefined(relation.time, relation.layer, relation.year, relation.raw?.time, relation.raw?.year);
+}
+
+function relationChildDetail(model = {}, relation = {}, options = {}) {
+  const displayInfo = relationDisplayInfo(model, relation, options);
+  const relationType = firstDefined(
+    relation.relationType,
+    relation.type,
+    relation.raw?.relationType,
+    relation.raw?.type,
+    displayInfo?.attributes?.relationType,
+    displayInfo?.attributes?.type
+  );
+  const description = firstDefined(
+    displayInfo?.description,
+    displayInfo?.attributes?.description,
+    relation.description,
+    relation.citation_context,
+    relation.raw?.description,
+    relation.raw?.citation_context
+  );
+  return compact({
+    id: relationIdOf(relation),
+    title: displayInfo?.title || relation.label || relation.name || relationType || relationIdOf(relation),
+    subtitle: displayInfo?.subtitle,
+    type: relationType,
+    time: relationTimeOf(relation),
+    weight: firstDefined(relation.weight, relation.extends_prob, relation.raw?.weight, relation.raw?.extends_prob),
+    metrics: cleanSection(displayInfo?.metrics, ["weight"]),
+    attributes: cleanSection(displayInfo?.attributes, [
+      "description",
+      "source",
+      "target",
+      "sourceSlice",
+      "targetSlice",
+      "sourceSliceId",
+      "targetSliceId",
+      "type",
+      "relationType",
+      "weight",
+    ]),
+    description,
+  });
 }
 
 function inferDetailType(item = {}, context = {}) {
@@ -262,6 +315,10 @@ export function createDetailFormatter(model = {}, options = {}) {
     const target = getEntity(model, relation.target);
     const displayInfo = relationDisplayInfo(model, relation, options);
     const relationMeta = normalizeRelationMeta(relation);
+    const multiRelation = isMultiRelation(relationMeta);
+    const childRelations = multiRelation
+      ? relationMeta.relations.map(child => relationChildDetail(model, child, options))
+      : [];
     const sourceLabel = source ? labelOf(model, source, options) : (relation.sourceName || relation.source);
     const targetLabel = target ? labelOf(model, target, options) : (relation.targetName || relation.target);
     const description = firstDefined(
@@ -275,7 +332,7 @@ export function createDetailFormatter(model = {}, options = {}) {
     return compact({
       type: "relation",
       id: relationIdOf(relation),
-      title: displayInfo?.title,
+      title: multiRelation ? "多重关系" : displayInfo?.title,
       subtitle: displayInfo?.subtitle,
       source: labelWithId(sourceLabel, relation.source),
       target: labelWithId(targetLabel, relation.target),
@@ -299,6 +356,7 @@ export function createDetailFormatter(model = {}, options = {}) {
         "weight",
       ]),
       description,
+      relations: childRelations,
     });
   }
 

@@ -1142,7 +1142,7 @@ function normalizeSliceWeights(value, primarySliceId = null) {
         });
     }
 
-    if (Object.keys(weights).length === 0 && primarySliceId != null) {
+    if (primarySliceId != null && !Object.prototype.hasOwnProperty.call(weights, String(primarySliceId))) {
         weights[String(primarySliceId)] = 1;
     }
     return weights;
@@ -1866,14 +1866,135 @@ function calculateRadii(weigths) {
     //      如(1,1,1,1)，那么半径为(1,0.75,0.5,0.25)
     //      如(1,2,3,4)，那么半径为(1, 0.9, 0.7, 0.4)
 
-    let total = weigths.reduce((a, b) => a + b, 0);
+    const safeWeights = (Array.isArray(weigths) ? weigths : [])
+        .map(weight => Math.max(0, toNumberOrDefault(weight, 0)));
+    if (safeWeights.length === 0) return [];
+
+    let total = safeWeights.reduce((a, b) => a + b, 0);
+    if (!Number.isFinite(total) || total <= 0) return safeWeights.map(() => 0);
+
     let current = total;
     let radii = []
-    weigths.forEach(w => {
-        radii.push(current / total);
+    safeWeights.forEach(w => {
+        const radius = current / total;
+        radii.push(Number.isFinite(radius) ? Math.max(0, Math.min(1, radius)) : 1);
         current -= w;
     })
     return radii;
+}
+
+function getNodeSliceWeights(node = {}) {
+    return node.sliceWeights || node.topicDist || {};
+}
+
+function getNodePrimarySliceId(node = {}, fallbackSliceId = null) {
+    return node.primarySliceId ?? node.topic ?? fallbackSliceId;
+}
+
+function getNodeSliceWeight(node = {}, sliceId, fallbackSliceId = null) {
+    if (sliceId === undefined || sliceId === null) return 0;
+    const key = String(sliceId);
+    const weights = getNodeSliceWeights(node);
+    if (weights && Object.prototype.hasOwnProperty.call(weights, key)) {
+        return toNumberOrDefault(weights[key], 0);
+    }
+    const fallbackKey = getNodePrimarySliceId(node, fallbackSliceId);
+    return fallbackKey != null && String(fallbackKey) === key ? 1 : 0;
+}
+
+function calculateNodeTopicRadii(node = {}, topics = [], fallbackSliceId = null) {
+    const safeTopics = topics.filter(topic => topic !== undefined && topic !== null);
+    const weights = safeTopics.map(topic => getNodeSliceWeight(node, topic, fallbackSliceId));
+    if (weights.some(weight => weight > 0)) return calculateRadii(weights);
+
+    const fallbackTopic = getNodePrimarySliceId(node, fallbackSliceId);
+    if (fallbackTopic == null) return calculateRadii(weights);
+    topics.length = 0;
+    topics.push(fallbackTopic);
+    return [1];
+}
+
+function finiteNumberOrNull(value) {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : null;
+}
+
+function parseSvgNumberList(value) {
+    if (value === undefined || value === null) return [];
+    const matches = String(value).match(/[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi);
+    if (!matches) return [];
+    return matches
+        .map(item => Number(item))
+        .filter(Number.isFinite);
+}
+
+function parseSvgPolygonPoints(value) {
+    const numbers = parseSvgNumberList(value);
+    const points = [];
+    for (let index = 0; index + 1 < numbers.length; index += 2) {
+        points.push({x: numbers[index], y: numbers[index + 1]});
+    }
+    return points;
+}
+
+function getPolygonBounds(points = []) {
+    if (!Array.isArray(points) || points.length === 0) return null;
+    const xs = points.map(point => point.x).filter(Number.isFinite);
+    const ys = points.map(point => point.y).filter(Number.isFinite);
+    if (xs.length === 0 || ys.length === 0) return null;
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return {
+        cx: (minX + maxX) / 2,
+        cy: (minY + maxY) / 2,
+        rx: Math.max((maxX - minX) / 2, 1),
+        ry: Math.max((maxY - minY) / 2, 1),
+    };
+}
+
+function sanitizeSvgPolygonPoints(value) {
+    const points = parseSvgPolygonPoints(value);
+    if (points.length === 0) return null;
+    return points.map(point => `${point.x},${point.y}`).join(' ');
+}
+
+function getSafeNodeGeometry(node = {}) {
+    const x = finiteNumberOrNull(node.x);
+    const y = finiteNumberOrNull(node.y);
+    if (x === null || y === null) return null;
+    const rx = finiteNumberOrNull(node.rx);
+    const ry = finiteNumberOrNull(node.ry);
+    const safeRx = Math.max(rx ?? 1, 1);
+    const safeRy = Math.max(ry ?? safeRx, 1);
+    return {x, y, rx: safeRx, ry: safeRy};
+}
+
+function getSafeRadiusScale(value) {
+    const radius = finiteNumberOrNull(value);
+    return radius !== null && radius > 0 ? radius : 0;
+}
+
+function buildHexagonPointString(geometry, radiusScale, enlargeRatio) {
+    if (!geometry) return null;
+    const scale = getSafeRadiusScale(radiusScale);
+    const ratio = getSafeRadiusScale(enlargeRatio) || 1;
+    if (scale <= 0) return null;
+    const rx = geometry.rx * scale * ratio;
+    const ry = geometry.ry * scale * ratio;
+    const {x, y} = geometry;
+    const points = [
+        [x + rx, y],
+        [x + rx / 2, y + ry],
+        [x - rx / 2, y + ry],
+        [x - rx, y],
+        [x - rx / 2, y - ry],
+        [x + rx / 2, y - ry],
+    ];
+    return points.every(point => point.every(Number.isFinite))
+        ? points.map(point => point.join(',')).join(' ')
+        : null;
 }
 
 function hsvToColor(color, sat=0.4) {
@@ -2102,37 +2223,41 @@ function parseSVG(graph) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     // 解析节点
     graph['svgElement'].querySelectorAll('g.node').forEach(node => {
-        const title = node.querySelector('title').textContent;
+        const title = node.querySelector('title')?.textContent;
         const shape = node.querySelector('ellipse, polygon, rect'); // 支持椭圆或多边形
         const text = node.querySelector('text');
+        if (!title || !shape) return;
 
         let cx, cy, rx, ry;
+        const tagName = String(shape.tagName || "").toLowerCase();
 
-        if (shape.tagName === 'ellipse') {
-            cx = parseFloat(shape.getAttribute('cx'));
-            cy = parseFloat(shape.getAttribute('cy'));
-            rx = parseFloat(shape.getAttribute('rx'));
-            ry = parseFloat(shape.getAttribute('ry'));
-        } else if (shape.tagName === 'rect') {
-            const x = parseFloat(shape.getAttribute('x'));
-            const y = parseFloat(shape.getAttribute('y'));
-            const width = parseFloat(shape.getAttribute('width'));
-            const height = parseFloat(shape.getAttribute('height'));
+        if (tagName === 'ellipse') {
+            cx = finiteNumberOrNull(shape.getAttribute('cx'));
+            cy = finiteNumberOrNull(shape.getAttribute('cy'));
+            rx = finiteNumberOrNull(shape.getAttribute('rx'));
+            ry = finiteNumberOrNull(shape.getAttribute('ry'));
+        } else if (tagName === 'rect') {
+            const x = finiteNumberOrNull(shape.getAttribute('x'));
+            const y = finiteNumberOrNull(shape.getAttribute('y'));
+            const width = finiteNumberOrNull(shape.getAttribute('width'));
+            const height = finiteNumberOrNull(shape.getAttribute('height'));
+            if (x === null || y === null || width === null || height === null) return;
 
             cx = x + width / 2;
             cy = y + height / 2;
             rx = width / 2;
             ry = height / 2;
-        } else if (shape.tagName === 'polygon') {
-            // 根据多边形的具体形状解析
-            const points = shape.getAttribute('points').split(' ').map(point => point.split(',').map(Number));
-            const xs = points.map(point => point[0]);
-            const ys = points.map(point => point[1]);
-            cx = (Math.min(...xs) + Math.max(...xs)) / 2;
-            cy = (Math.min(...ys) + Math.max(...ys)) / 2;
-            rx = (Math.max(...xs) - Math.min(...xs)) / 2;
-            ry = (Math.max(...ys) - Math.min(...ys)) / 2;
+        } else if (tagName === 'polygon') {
+            const bounds = getPolygonBounds(parseSvgPolygonPoints(shape.getAttribute('points')));
+            if (!bounds) return;
+            cx = bounds.cx;
+            cy = bounds.cy;
+            rx = bounds.rx;
+            ry = bounds.ry;
         }
+        if (![cx, cy, rx, ry].every(Number.isFinite)) return;
+        rx = Math.max(Math.abs(rx), 1);
+        ry = Math.max(Math.abs(ry), 1);
 
         minX = Math.min(minX, cx - rx);
         maxX = Math.max(maxX, cx + rx);
@@ -2154,7 +2279,8 @@ function parseSVG(graph) {
     // 解析边
     graph['svgElement'].querySelectorAll('g.edge').forEach(edge => {
         // dismiss port
-        const title = edge.querySelector('title').textContent.replace(/:w|:e/g, '');;
+        const title = edge.querySelector('title')?.textContent?.replace(/:w|:e/g, '');
+        if (!title) return;
         const paths = edge.querySelectorAll('path');
         const polygon = edge.querySelector('polygon');
 
@@ -2177,7 +2303,7 @@ function parseSVG(graph) {
             polygon: polygon ? {
                 fill: polygon.getAttribute('fill'),
                 stroke: polygon.getAttribute('stroke'),
-                points: polygon.getAttribute('points')
+                points: sanitizeSvgPolygonPoints(polygon.getAttribute('points'))
             } : null
         };
     });
@@ -2186,26 +2312,42 @@ function parseSVG(graph) {
     // let transform = `translate(0,${viewBoxHeight})`;
     // graph['transform'] = graph['svgElement'].getAttribute('transform');
 
+    if (![minX, minY, maxX, maxY].every(Number.isFinite)) {
+        const viewBox = parseSvgNumberList(graph['svgElement'].getAttribute('viewBox'));
+        if (viewBox.length >= 4) {
+            minX = viewBox[0];
+            minY = viewBox[1];
+            maxX = viewBox[0] + viewBox[2];
+            maxY = viewBox[1] + viewBox[3];
+        } else {
+            minX = 0;
+            minY = 0;
+            maxX = toNumberOrDefault(graph['width'], 1);
+            maxY = toNumberOrDefault(graph['height'], 1);
+        }
+    }
+
     graph['viewBox'] = `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
     graph['transform'] = `translate(0,${maxY - minY})`;
 
     graph['nodes'].forEach(node => {
-        Object.assign(node, graph['id2attr'][node.id]);
+        const attrs = graph['id2attr'][node.id];
+        if (attrs && getSafeNodeGeometry(attrs)) Object.assign(node, attrs);
     });
     graph['edges'].forEach(edge => {
         let edgeKey = edge.source + '->' + edge.target;
-        Object.assign(edge, graph['id2attr'][edgeKey]);  // 合并边的属性
+        if (graph['id2attr'][edgeKey]) Object.assign(edge, graph['id2attr'][edgeKey]);  // 合并边的属性
     });
 }
 
 // 获取路径的起点或终点
 function getEndPoint(d, type) {
-    let points = d.match(/([0-9.-]+),([0-9.-]+)/g);
-    if (!points) return { x: 0, y: 0 };
-    points = points.map(pt => {
-        const coords = pt.split(',');
-        return { x: parseFloat(coords[0]), y: parseFloat(coords[1]) };
-    });
+    const numbers = parseSvgNumberList(d);
+    const points = [];
+    for (let index = 0; index + 1 < numbers.length; index += 2) {
+        points.push({x: numbers[index], y: numbers[index + 1]});
+    }
+    if (points.length === 0) return { x: 0, y: 0 };
     return type === 's' ? points[0] : points[points.length - 1];
 }
 
@@ -2235,7 +2377,7 @@ function init_graph(graph, context=true) {
                 const entitySliceMap = getActiveEntitySliceMap();
                 let topics = edges.map(edge => entitySliceMap[edge.source]); // context节点的话题
                 topics.forEach(topic => {
-                    if (node.topicDist[topic]) node.influx = topic;
+                    if (node?.topicDist?.[topic]) node.influx = topic;
                 })
             } else {
                 let nodeId = name.split('->')[0];
@@ -2243,7 +2385,7 @@ function init_graph(graph, context=true) {
                 const entitySliceMap = getActiveEntitySliceMap();
                 let topics = edges.map(edge => entitySliceMap[edge.target]); // context节点的话题
                 topics.forEach(topic => {
-                    if (node.topicDist[topic]) node.efflux = topic;
+                    if (node?.topicDist?.[topic]) node.efflux = topic;
                 })
             }
         })
@@ -2323,7 +2465,7 @@ function init_graph(graph, context=true) {
                 tip.hide({name: getLegacyEdgeDisplayName(edge, graph)});
             });
             
-        if (!edge.polygon) {
+        if (!edge.polygon?.points) {
             return true;
         }
         edgeGroup.append('polygon')
@@ -2355,42 +2497,50 @@ function init_graph(graph, context=true) {
     if (nodeShape == 0)
         circle = matrixg.selectAll('paper').data(graph['nodes']).enter().append('g')
             .each(function(d) {
+                const geometry = getSafeNodeGeometry(d);
+                if (!geometry) return;
                 let topics, radii;
                 if (graph['sliceId'] == null) {
                     topics = [d.topic];
                     radii = [1];
                 } else {
                     topics = [d.influx, graph['sliceId'], d.efflux].filter(t => t !== undefined);
-                    radii = calculateRadii(topics.map(t => d.topicDist[t]));
+                    radii = calculateNodeTopicRadii(d, topics, graph['sliceId']);
                 }
                 // 从外向内绘制同心圆
                 for (let i = 0; i < topics.length; i++) {
+                    const scale = getSafeRadiusScale(radii[i]);
+                    if (scale <= 0) continue;
                     d3.select(this).append('ellipse')
-                        .attr('cx', d.x)
-                        .attr('cy', d.y)
-                        .attr('rx', d.rx * radii[i] * enlarge_ratio)
-                        .attr('ry', d.ry * radii[i] * enlarge_ratio)
+                        .attr('cx', geometry.x)
+                        .attr('cy', geometry.y)
+                        .attr('rx', geometry.rx * scale * enlarge_ratio)
+                        .attr('ry', geometry.ry * scale * enlarge_ratio)
                         .style("fill", sliceColor(topics[i]));
                 }
             });
     if(nodeShape == 1)
         circle = matrixg.selectAll('paper').data(graph['nodes']).enter().append('g')
             .each(function(d) {
+                const geometry = getSafeNodeGeometry(d);
+                if (!geometry) return;
                 let topics, radii;
                 if (graph['sliceId'] == null) {
                     topics = [d.topic];
                     radii = [1];
                 } else {
                     topics = [d.influx, graph['sliceId'], d.efflux].filter(t => t !== undefined);
-                    radii = calculateRadii(topics.map(t => d.topicDist[t]));
+                    radii = calculateNodeTopicRadii(d, topics, graph['sliceId']);
                 }
                 // 从外向内绘制同心矩形
                 for (let i = 0; i < topics.length; i++) {
+                    const scale = getSafeRadiusScale(radii[i]);
+                    if (scale <= 0) continue;
                     d3.select(this).append('rect')
-                        .attr('x', d.x - d.rx * radii[i] * enlarge_ratio)
-                        .attr('y', d.y - d.ry * radii[i] * enlarge_ratio)
-                        .attr('width', d.rx * 2 * radii[i] * enlarge_ratio)
-                        .attr('height', d.ry * 2 * radii[i] * enlarge_ratio)
+                        .attr('x', geometry.x - geometry.rx * scale * enlarge_ratio)
+                        .attr('y', geometry.y - geometry.ry * scale * enlarge_ratio)
+                        .attr('width', geometry.rx * 2 * scale * enlarge_ratio)
+                        .attr('height', geometry.ry * 2 * scale * enlarge_ratio)
                         .style("fill", sliceColor(topics[i]));
                 }
             });
@@ -2413,31 +2563,20 @@ function init_graph(graph, context=true) {
     if (nodeShape == 3)
         circle = matrixg.selectAll('paper').data(graph['nodes']).enter().append('g')
             .each(function(d) {
+                const geometry = getSafeNodeGeometry(d);
+                if (!geometry) return;
                 let topics, radii;
                 if (graph['sliceId'] == null) {
                     topics = [d.topic];
                     radii = [1];
                 } else {
                     topics = [d.influx, graph['sliceId'], d.efflux].filter(t => t !== undefined);
-                    radii = calculateRadii(topics.map(t => d.topicDist[t]));
+                    radii = calculateNodeTopicRadii(d, topics, graph['sliceId']);
                 }
                 // 从外向内绘制同心多边形
                 for (let i = 0; i < topics.length; i++) {
                     d3.select(this).append('polygon')
-                        .attr('points', function(d) {
-                            const rx = d.rx * radii[i] * enlarge_ratio;
-                            const ry = d.ry * radii[i] * enlarge_ratio;
-                            const x = d.x;
-                            const y = d.y;
-                            return [
-                                [x + rx, y].join(','),
-                                [x + rx / 2, y + ry].join(','),
-                                [x - rx / 2, y + ry].join(','),
-                                [x - rx, y].join(','),
-                                [x - rx / 2, y - ry].join(','),
-                                [x + rx / 2, y - ry].join(',')
-                            ].join(' ');
-                        })
+                        .attr('points', () => buildHexagonPointString(geometry, radii[i], enlarge_ratio))
                         .style("fill", sliceColor(topics[i]));
                 }
             });
@@ -2632,7 +2771,7 @@ function mouseoverEdge(id, width=10, color='red') {
 
 function mouseoutEdge(id) {
     if (!highlighted.includes(id)) {
-        // TODO: why d is undefined???
+        // Some legacy SVG nodes do not carry bound edge data; skip them when restoring styles.
         d3.selectAll('#' + selectorById(id)).filter(d=>d !== undefined)
             .style("stroke", d=> d.color)   // {console.log(d); return
             .style("stroke-width", d=>d.width);

@@ -1,4 +1,9 @@
+import {buildComponentModels} from "../core/index.js";
 import {parseCsv} from "../core/normalize.js";
+import {
+  createDetailRows,
+  getDisplayInfo as getModelDisplayInfo,
+} from "../detail/detail.js";
 
 function isPlainObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -183,7 +188,7 @@ function normalizeLegacyConfig(config = {}) {
   };
 }
 
-export function normalizeLegacyAcademicInput(input = {}, options = {}) {
+export function normalizeReferenceInput(input = {}, options = {}) {
   const data = input.data || input.sourceData || input;
   const config = normalizeLegacyConfig({
     ...(input.config || {}),
@@ -225,4 +230,14 @@ export function normalizeLegacyAcademicInput(input = {}, options = {}) {
   };
 }
 
-export const normalizeLegacyInput = normalizeLegacyAcademicInput;
+export function buildReferenceModels(input = {}, options = {}) {
+  return buildComponentModels(normalizeReferenceInput(input, options), options.model || options);
+}
+
+export function getDisplayInfo(model, item = {}) {
+  return getModelDisplayInfo(model, item);
+}
+
+export function detailRows(model, item = {}, context = {}) {
+  return createDetailRows(model, item, context);
+}

@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GeneticPrism Scroll Demo</title>
   <link rel="stylesheet" href="../../../src/components/scroll/scroll.css">
+  <link rel="stylesheet" href="../../shared/demo.css">
   <link rel="stylesheet" href="../../../src/components/prism/prism.css">
   <link rel="stylesheet" href="../../../src/components/list/list.css">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <script src="../../../example/viz-standalone.js"></script>
-  <script src="../../../example/viz-context.js"></script>
+  <script src="../../../src/runtime/viz-standalone.js"></script>
+  <script src="../../../src/runtime/viz-context.js"></script>
   <style>
     html,
     body {
@@ -308,8 +309,38 @@
     import {legacyLayeredScroll} from "../../../src/components/scroll/legacyLayeredScroll.js";
     import {renderPrismSliceTags} from "../../../src/components/prism/Prism.js";
     import {renderList} from "../../../src/components/list/List.js";
-    import {createDetailRows} from "../../../src/detail/detail.js";
-    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+    import {buildReferenceModels, detailRows} from "../../../src/adapters/reference.js";
+
+    async function loadJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadReferenceInput(options = {}) {
+      const baseUrl = options.baseUrl || "../data";
+      const [slices, hierarchy, entities, relations, config, displayInfo] = await Promise.all([
+        loadJson(`${baseUrl}/slice_definitions.json`),
+        loadJson(`${baseUrl}/slice_hierarchy.json`),
+        loadJson(`${baseUrl}/entities.json`),
+        loadJson(`${baseUrl}/relations.json`),
+        loadJson(`${baseUrl}/component_options.json`),
+        loadJson(`${baseUrl}/display_info.json`),
+      ]);
+      return {
+        normalized: true,
+        slices,
+        hierarchy,
+        entities,
+        relations,
+        config: {...config, ...(options.config || {})},
+        displayInfo,
+      };
+    }
+
+    async function loadReferenceModels(options = {}) {
+      return buildReferenceModels(await loadReferenceInput(options), options.model || options);
+    }
 
     const layoutSelect = document.querySelector("#layout-select");
     const isolatedSelect = document.querySelector("#isolated-select");
@@ -342,7 +373,7 @@
       detailEmpty.hidden = true;
       detailBody.hidden = false;
       detailBody.innerHTML = "";
-      detailInstance = renderList(detailBody, createDetailRows(componentModels || {}, data, context), {
+      detailInstance = renderList(detailBody, detailRows(componentModels || {}, data, context), {
         mode: "json",
         numberPrecision: 4,
       });
@@ -353,7 +384,7 @@
       const [viz, vizContext, models] = await Promise.all([
         window.Viz.instance(),
         window.VizContext.instance(),
-        loadReferenceDemoModels({
+        loadReferenceModels({
           config: {
             remove_isolated: removeIsolatedValue,
             removeIsolated: removeIsolatedValue,

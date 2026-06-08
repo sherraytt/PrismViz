@@ -6,7 +6,7 @@
   <title>GeneticPrism Chord React Demo</title>
   <link rel="stylesheet" href="../../../src/components/chord/chord.css">
   <link rel="stylesheet" href="../../../src/components/list/list.css">
-  <link rel="stylesheet" href="./react-demo.css">
+  <link rel="stylesheet" href="../../shared/react-demo.css">
   <script type="importmap">
     {
       "imports": {
@@ -23,9 +23,27 @@
     import {createRoot} from "react-dom/client";
     import {ReactChord} from "../../../src/components/chord/Chord.react.js";
     import {ReactList} from "../../../src/components/list/List.react.js";
-    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+    import {buildReferenceModels} from "../../../src/adapters/reference.js";
 
     const e = React.createElement;
+
+    async function loadJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadReferenceModels(baseUrl = "../data") {
+      const [slices, hierarchy, entities, relations, config, displayInfo] = await Promise.all([
+        loadJson(`${baseUrl}/slice_definitions.json`),
+        loadJson(`${baseUrl}/slice_hierarchy.json`),
+        loadJson(`${baseUrl}/entities.json`),
+        loadJson(`${baseUrl}/relations.json`),
+        loadJson(`${baseUrl}/component_options.json`),
+        loadJson(`${baseUrl}/display_info.json`),
+      ]);
+      return buildReferenceModels({normalized: true, slices, hierarchy, entities, relations, config, displayInfo});
+    }
 
     function ChordReactDemo() {
       const [model, setModel] = useState(null);
@@ -33,7 +51,7 @@
 
       useEffect(() => {
         let cancelled = false;
-        loadReferenceDemoModels().then(nextModel => {
+        loadReferenceModels().then(nextModel => {
           if (cancelled) return;
           setModel(nextModel);
           setDetail({

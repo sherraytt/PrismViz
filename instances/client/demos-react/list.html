@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GeneticPrism Client List React Demo</title>
   <link rel="stylesheet" href="../../../src/components/list/list.css">
-  <link rel="stylesheet" href="./react-demo.css">
+  <link rel="stylesheet" href="../../shared/react-demo.css">
   <script type="importmap">
     {
       "imports": {
@@ -21,9 +21,27 @@
     import React, {useCallback, useEffect, useState} from "react";
     import {createRoot} from "react-dom/client";
     import {ReactList} from "../../../src/components/list/List.react.js";
-    import {buildSqModels, detailRows} from "../demo-support/client-data.js";
+    import {buildClientModels, detailRows} from "../../../src/adapters/client.js";
 
     const e = React.createElement;
+
+    async function loadJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadClientModels(baseUrl = "../data") {
+      const [slices, hierarchy, entities, relations, config, displayInfo] = await Promise.all([
+        loadJson(`${baseUrl}/slice_definitions.json`),
+        loadJson(`${baseUrl}/slice_hierarchy.json`),
+        loadJson(`${baseUrl}/entities.json`),
+        loadJson(`${baseUrl}/relations.json`),
+        loadJson(`${baseUrl}/component_options.json`),
+        loadJson(`${baseUrl}/display_info.json`),
+      ]);
+      return buildClientModels({slices, hierarchy, entities, relations, config, displayInfo});
+    }
 
     function ListReactDemo() {
       const [model, setModel] = useState(null);
@@ -31,7 +49,7 @@
 
       useEffect(() => {
         let cancelled = false;
-        buildSqModels().then(nextModel => {
+        loadClientModels().then(nextModel => {
           if (cancelled) return;
           setModel(nextModel);
           setDetail(detailRows(nextModel, nextModel.list.items[0]?.raw || {}, {type: "entity"}));

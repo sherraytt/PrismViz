@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../../../src/components/scroll/scroll.css">
   <link rel="stylesheet" href="../../../src/components/prism/prism.css">
   <link rel="stylesheet" href="../../../src/components/list/list.css">
-  <link rel="stylesheet" href="./sq-demo.css">
+  <link rel="stylesheet" href="../../shared/demo.css">
   <style>
     #scroll-demo {
       height: calc(100vh - 230px);
@@ -37,7 +37,7 @@
       overflow: auto;
     }
 
-    .sq-detail-hint {
+    .demo-detail-hint {
       padding: 18px 20px;
       color: #5f727c;
       line-height: 1.6;
@@ -45,7 +45,7 @@
     }
   </style>
 </head>
-<body class="sq-scroll-page">
+<body class="demo-scroll-page">
   <div class="demo-shell">
     <header class="demo-header">
       <span>Scroll Component Demo · Client Data</span>
@@ -108,18 +108,40 @@
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
-  <script src="../../../example/viz-standalone.js"></script>
-  <script src="../../../example/viz-context.js"></script>
+  <script src="../../../src/runtime/viz-standalone.js"></script>
+  <script src="../../../src/runtime/viz-context.js"></script>
   <script type="module">
-    import {renderScroll} from "../../../src/components/scroll/Scroll.js";
-    import {legacyLayeredScroll} from "../../../src/components/scroll/legacyLayeredScroll.js";
+    import {renderScroll} from "../../../src/components/scroll/Scroll.js?v=20260608-client-scroll-nan";
+    import {legacyLayeredScroll} from "../../../src/components/scroll/legacyLayeredScroll.js?v=20260608-client-scroll-nan";
     import {renderList} from "../../../src/components/list/List.js";
     import {renderPrismSliceTags} from "../../../src/components/prism/Prism.js";
     import {
-      buildSqModels,
+      buildClientModels,
       capScrollModelBySliceWeights,
       detailRows,
-    } from "../demo-support/client-data.js";
+    } from "../../../src/adapters/client.js?v=20260608-client-scroll-nan";
+
+    async function loadJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadClientInput(baseUrl = "../data") {
+      const [slices, hierarchy, entities, relations, config, displayInfo] = await Promise.all([
+        loadJson(`${baseUrl}/slice_definitions.json`),
+        loadJson(`${baseUrl}/slice_hierarchy.json`),
+        loadJson(`${baseUrl}/entities.json`),
+        loadJson(`${baseUrl}/relations.json`),
+        loadJson(`${baseUrl}/component_options.json`),
+        loadJson(`${baseUrl}/display_info.json`),
+      ]);
+      return {slices, hierarchy, entities, relations, config, displayInfo};
+    }
+
+    async function buildClientDemoModels(options = {}) {
+      return buildClientModels(await loadClientInput(options.baseUrl || "../data"), options);
+    }
 
     const layoutSelect = document.querySelector("#layout-select");
     const removeIsolatedSelect = document.querySelector("#remove-isolated");
@@ -131,7 +153,7 @@
       window.Viz.instance(),
       window.VizContext.instance(),
     ]);
-    let model = await buildSqModels({removeIsolated: removeIsolatedSelect.value});
+    let model = await buildClientDemoModels({removeIsolated: removeIsolatedSelect.value});
     let instance = null;
     let tagInstance = null;
     let selectedSliceId = "";
@@ -259,7 +281,7 @@
     layoutSelect.addEventListener("change", render);
     detailClose.addEventListener("click", resetDetail);
     removeIsolatedSelect.addEventListener("change", async () => {
-      model = await buildSqModels({removeIsolated: removeIsolatedSelect.value});
+      model = await buildClientDemoModels({removeIsolated: removeIsolatedSelect.value});
       initializeLegacyRuntime(model);
       fillSlices();
       render();

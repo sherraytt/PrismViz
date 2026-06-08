@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GeneticPrism Prism Demo</title>
   <link rel="stylesheet" href="../../../src/components/prism/prism.css">
+  <link rel="stylesheet" href="../../shared/demo.css">
   <style>
     html,
     body {
@@ -217,10 +218,28 @@
     </main>
   </div>
 
-  <script src="../../../example/viz-standalone.js"></script>
+  <script src="../../../src/runtime/viz-standalone.js"></script>
   <script type="module">
-    import {loadReferenceDemoModels} from "../demo-support/reference-data.js";
+    import {buildReferenceModels} from "../../../src/adapters/reference.js";
     import {renderPrism} from "../../../src/components/prism/Prism.js";
+
+    async function loadJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadReferenceInput(baseUrl = "../data") {
+      const [slices, hierarchy, entities, relations, config, displayInfo] = await Promise.all([
+        loadJson(`${baseUrl}/slice_definitions.json`),
+        loadJson(`${baseUrl}/slice_hierarchy.json`),
+        loadJson(`${baseUrl}/entities.json`),
+        loadJson(`${baseUrl}/relations.json`),
+        loadJson(`${baseUrl}/component_options.json`),
+        loadJson(`${baseUrl}/display_info.json`),
+      ]);
+      return {normalized: true, slices, hierarchy, entities, relations, config, displayInfo};
+    }
 
     function renderMetrics(model) {
       const metrics = document.querySelector("#metrics");
@@ -238,7 +257,7 @@
       });
     }
 
-    const model = await loadReferenceDemoModels();
+    const model = buildReferenceModels(await loadReferenceInput());
     const widthSelect = document.querySelector("#width-mode");
     const faceLayoutSelect = document.querySelector("#face-layout");
     const speedSelect = document.querySelector("#rotation-speed");

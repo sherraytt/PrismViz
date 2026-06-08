@@ -191,12 +191,18 @@ function normalizeScrollData(data = {}, options = {}) {
   const nodes = asArray(graph.nodes || graph.entities).map(node => {
     const id = stringId(node.id);
     const primarySliceId = primarySliceIdFromNode(node);
+    const sliceWeights = node.sliceWeights && typeof node.sliceWeights === "object" && !Array.isArray(node.sliceWeights)
+      ? {...node.sliceWeights}
+      : {};
+    if (primarySliceId && !Object.prototype.hasOwnProperty.call(sliceWeights, primarySliceId)) {
+      sliceWeights[primarySliceId] = 1;
+    }
     return {
       id,
       label: node.label || node.name || id,
       time: toOptionalNumber(node.time ?? node.layer),
       primarySliceId,
-      sliceWeights: node.sliceWeights || {},
+      sliceWeights,
       impact: toNumber(node.impact ?? node.value, 0),
       importance: toNumber(node.importance ?? 0, 0),
       raw: node,
@@ -305,13 +311,17 @@ function isTimeLayeredLayout(layoutMode) {
 }
 
 function hexagonPoints(cx, cy, radiusX, radiusY = radiusX) {
+  const x = toNumber(cx, 0);
+  const y = toNumber(cy, 0);
+  const rx = Math.max(0.001, Math.abs(toNumber(radiusX, 4)));
+  const ry = Math.max(0.001, Math.abs(toNumber(radiusY, rx)));
   return [
-    [cx + radiusX, cy],
-    [cx + radiusX / 2, cy + radiusY],
-    [cx - radiusX / 2, cy + radiusY],
-    [cx - radiusX, cy],
-    [cx - radiusX / 2, cy - radiusY],
-    [cx + radiusX / 2, cy - radiusY],
+    [x + rx, y],
+    [x + rx / 2, y + ry],
+    [x - rx / 2, y + ry],
+    [x - rx, y],
+    [x - rx / 2, y - ry],
+    [x + rx / 2, y - ry],
   ].map(point => point.join(",")).join(" ");
 }
 

@@ -6,7 +6,65 @@ import {
 
 export const DEFAULT_MAX_SLICE_NODES = 300;
 
-export function normalizeClientIndustryInput(input = {}, options = {}) {
+function isPlainObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function toNumber(value, fallback = 0) {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : fallback;
+}
+
+function normalizeSliceWeightsForLegacy(value, primarySliceId = null) {
+  const weights = {};
+  if (isPlainObject(value)) {
+    Object.entries(value).forEach(([sliceId, weight]) => {
+      weights[String(sliceId)] = toNumber(weight, 0);
+    });
+  }
+  if (primarySliceId !== undefined && primarySliceId !== null && primarySliceId !== "") {
+    const key = String(primarySliceId);
+    if (!Object.prototype.hasOwnProperty.call(weights, key)) weights[key] = 1;
+  }
+  return weights;
+}
+
+function addLegacySliceWeightAliases(entity = {}) {
+  const primarySliceId = entity.primarySliceId ?? entity.sliceId ?? null;
+  const sliceWeights = normalizeSliceWeightsForLegacy(
+    entity.sliceWeights || entity.topicDist || entity.weights || {},
+    primarySliceId
+  );
+  entity.sliceWeights = sliceWeights;
+  entity.topicDist = {...sliceWeights};
+  if (entity.primarySliceId == null && primarySliceId != null) entity.primarySliceId = String(primarySliceId);
+  return entity;
+}
+
+function withLegacySliceWeightAliases(entity = {}) {
+  return addLegacySliceWeightAliases({...entity});
+}
+
+function addLegacyAliasesToScrollModel(scrollModel = {}) {
+  const graph = scrollModel.graph || {};
+  [graph.nodes, graph.entities].forEach(nodes => {
+    if (Array.isArray(nodes)) nodes.forEach(addLegacySliceWeightAliases);
+  });
+  return scrollModel;
+}
+
+function addLegacyAliasesToModel(model = {}) {
+  if (Array.isArray(model.entities)) model.entities.forEach(addLegacySliceWeightAliases);
+  Object.values(model.scrollBySliceId || {}).forEach(addLegacyAliasesToScrollModel);
+  Object.values(model.prism?.sliceGraphs || {}).forEach(graph => {
+    [graph.nodes, graph.entities].forEach(nodes => {
+      if (Array.isArray(nodes)) nodes.forEach(addLegacySliceWeightAliases);
+    });
+  });
+  return model;
+}
+
+export function normalizeClientInput(input = {}, options = {}) {
   const config = {
     ...(input.config || input.componentOptions || {}),
     remove_isolated: String(options.removeIsolated ?? input.config?.remove_isolated ?? input.componentOptions?.remove_isolated ?? "0"),
@@ -16,7 +74,7 @@ export function normalizeClientIndustryInput(input = {}, options = {}) {
     normalized: true,
     slices: input.slices || input.sliceDefinitions || [],
     hierarchy: input.hierarchy || input.sliceHierarchy || [],
-    entities: input.entities || input.nodes || [],
+    entities: (input.entities || input.nodes || []).map(withLegacySliceWeightAliases),
     relations: input.relations || input.edges || [],
     config,
     displayInfo: input.displayInfo || {},
@@ -24,13 +82,13 @@ export function normalizeClientIndustryInput(input = {}, options = {}) {
   };
 }
 
-export function buildClientIndustryModels(input = {}, options = {}) {
-  const raw = normalizeClientIndustryInput(input, options);
-  const model = buildComponentModels(raw, {
+export function buildClientModels(input = {}, options = {}) {
+  const raw = normalizeClientInput(input, options);
+  const model = addLegacyAliasesToModel(buildComponentModels(raw, {
     sliceThreshold: options.sliceThreshold ?? 0,
     tree: {useHierarchy: true, ...(options.tree || {})},
     ...(options.model || {}),
-  });
+  }));
 
   return {
     ...model,
@@ -106,8 +164,8 @@ export function capScrollModelBySliceWeights(model, sliceId, maxNodes = DEFAULT_
     ...source,
     graph: {
       ...graph,
-      nodes,
-      entities: nodes,
+      nodes: nodes.map(addLegacySliceWeightAliases),
+      entities: nodes.map(addLegacySliceWeightAliases),
       edges,
       relations: edges,
       contextEdges,

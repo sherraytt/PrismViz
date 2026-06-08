@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GeneticPrism Client Chord Demo</title>
   <link rel="stylesheet" href="../../../src/components/chord/chord.css">
-  <link rel="stylesheet" href="./sq-demo.css">
+  <link rel="stylesheet" href="../../shared/demo.css">
   <style>
     #chord-demo {
       height: calc(100vh - 126px);
@@ -38,19 +38,49 @@
 }</code></pre>
         <p>其中 <code>matrix[i][j]</code> 表示第 i 个 slice 到第 j 个 slice 的聚合关系数量。组件内部只做自身 hover 高亮，不切换 Scroll 或 Prism。</p>
         <h2>当前数据</h2>
-        <div id="metrics" class="sq-metrics"></div>
+        <div id="metrics" class="demo-metrics"></div>
       </section>
     </main>
   </div>
 
   <script type="module">
     import {renderChord} from "../../../src/components/chord/Chord.js";
-    import {buildSqModels, renderMetrics} from "../demo-support/client-data.js";
+    import {buildClientModels} from "../../../src/adapters/client.js";
 
-    const model = await buildSqModels();
+    async function loadJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadClientInput(baseUrl = "../data") {
+      const [slices, hierarchy, entities, relations, config, displayInfo] = await Promise.all([
+        loadJson(`${baseUrl}/slice_definitions.json`),
+        loadJson(`${baseUrl}/slice_hierarchy.json`),
+        loadJson(`${baseUrl}/entities.json`),
+        loadJson(`${baseUrl}/relations.json`),
+        loadJson(`${baseUrl}/component_options.json`),
+        loadJson(`${baseUrl}/display_info.json`),
+      ]);
+      return {slices, hierarchy, entities, relations, config, displayInfo};
+    }
+
+    function renderMetrics(container, rows = []) {
+      const element = typeof container === "string" ? document.querySelector(container) : container;
+      if (!element) return;
+      element.innerHTML = "";
+      rows.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "demo-metric";
+        row.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+        element.appendChild(row);
+      });
+    }
+
+    const model = buildClientModels(await loadClientInput());
     renderChord("#chord-demo", model.chord, {
       mode: "chord",
-      onSelect: item => console.log("sq Chord selected:", item),
+      onSelect: item => console.log("client Chord selected:", item),
     });
     renderMetrics("#metrics", [
       ["slices", model.slices.length],

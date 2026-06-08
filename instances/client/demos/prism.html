@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GeneticPrism Client Prism Demo</title>
   <link rel="stylesheet" href="../../../src/components/prism/prism.css">
-  <link rel="stylesheet" href="./sq-demo.css">
+  <link rel="stylesheet" href="../../shared/demo.css">
   <style>
     #prism-demo {
       height: calc(100vh - 128px);
@@ -77,17 +77,47 @@
   }
 }</code></pre>
         <h2>当前数据</h2>
-        <div id="metrics" class="sq-metrics"></div>
+        <div id="metrics" class="demo-metrics"></div>
       </section>
     </main>
   </div>
 
-  <script src="../../../example/viz-standalone.js"></script>
+  <script src="../../../src/runtime/viz-standalone.js"></script>
   <script type="module">
     import {renderPrism} from "../../../src/components/prism/Prism.js";
-    import {buildSqModels, renderMetrics} from "../demo-support/client-data.js";
+    import {buildClientModels} from "../../../src/adapters/client.js";
 
-    const model = await buildSqModels();
+    async function loadJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadClientInput(baseUrl = "../data") {
+      const [slices, hierarchy, entities, relations, config, displayInfo] = await Promise.all([
+        loadJson(`${baseUrl}/slice_definitions.json`),
+        loadJson(`${baseUrl}/slice_hierarchy.json`),
+        loadJson(`${baseUrl}/entities.json`),
+        loadJson(`${baseUrl}/relations.json`),
+        loadJson(`${baseUrl}/component_options.json`),
+        loadJson(`${baseUrl}/display_info.json`),
+      ]);
+      return {slices, hierarchy, entities, relations, config, displayInfo};
+    }
+
+    function renderMetrics(container, rows = []) {
+      const element = typeof container === "string" ? document.querySelector(container) : container;
+      if (!element) return;
+      element.innerHTML = "";
+      rows.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "demo-metric";
+        row.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+        element.appendChild(row);
+      });
+    }
+
+    const model = buildClientModels(await loadClientInput());
     const prismModel = {
       ...model.prism,
       slices: model.prism.slices.map(slice => ({
