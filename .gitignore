@@ -36,3 +36,9 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Local process docs
+process/
+docs/
+
+myHttpServer4Md/
