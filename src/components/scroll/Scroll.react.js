@@ -1,6 +1,28 @@
 import React, {useEffect, useRef} from "react";
 import {renderScroll} from "./Scroll.js";
 
+function mergeCallbacks(options, callbacks) {
+  const merged = {...options};
+  Object.entries(callbacks).forEach(([key, propCallback]) => {
+    const optionCallback = options?.[key];
+    if (typeof optionCallback === "function" && typeof propCallback === "function") {
+      merged[key] = optionCallback === propCallback
+        ? optionCallback
+        : (...args) => {
+          optionCallback(...args);
+          propCallback(...args);
+        };
+      return;
+    }
+    if (typeof propCallback === "function") {
+      merged[key] = propCallback;
+    } else if (typeof optionCallback === "function") {
+      merged[key] = optionCallback;
+    }
+  });
+  return merged;
+}
+
 export function ReactScroll({
   data,
   options = {},
@@ -9,6 +31,7 @@ export function ReactScroll({
   onEdgeHover,
   onSegmentHover,
   onSegmentSelect,
+  onStreamHover,
   onStreamSelect,
   onReady,
   className = "gp-scroll-host",
@@ -18,15 +41,16 @@ export function ReactScroll({
 
   useEffect(() => {
     if (!ref.current || !data) return undefined;
-    const instance = renderScroll(ref.current, data, {
-      ...options,
+    const mergedOptions = mergeCallbacks(options, {
       onSelect,
       onNodeHover,
       onEdgeHover,
       onSegmentHover,
       onSegmentSelect,
+      onStreamHover,
       onStreamSelect,
     });
+    const instance = renderScroll(ref.current, data, mergedOptions);
     onReady?.(instance);
     return () => {
       onReady?.(null);
@@ -40,6 +64,7 @@ export function ReactScroll({
     onEdgeHover,
     onSegmentHover,
     onSegmentSelect,
+    onStreamHover,
     onStreamSelect,
     onReady,
   ]);
