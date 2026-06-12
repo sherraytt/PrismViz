@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reference Chord + Prism Interaction Demo</title>
+  <link rel="stylesheet" href="../../../../src/components/tree/tree.css">
+  <link rel="stylesheet" href="../../../../src/components/chord/chord.css">
+  <link rel="stylesheet" href="../../../../src/components/prism/prism.css">
+  <link rel="stylesheet" href="../../../../src/components/scroll/scroll.css">
+  <link rel="stylesheet" href="../../../../src/components/list/list.css">
+  <link rel="stylesheet" href="../../../shared/interaction-demo.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="../../../../src/runtime/viz-standalone.js"></script>
+  <script src="../../../../src/runtime/viz-context.js"></script>
+</head>
+<body>
+  <div class="interaction-shell" data-interaction-demo>
+    <header class="interaction-header"><span id="interaction-title">Chord + Prism</span><span id="interaction-status" class="interaction-status"></span></header>
+    <main class="interaction-main">
+      <section class="interaction-left">
+        <section id="tree-card" class="interaction-card"><div class="interaction-card-title">Tree</div><div id="tree-body" class="interaction-card-body"></div></section>
+        <section id="chord-card" class="interaction-card"><div class="interaction-card-title">Chord</div><div id="chord-body" class="interaction-card-body"></div></section>
+      </section>
+      <section class="interaction-center">
+        <section class="interaction-card"><div id="center-title" class="interaction-card-title">Main View</div><div class="interaction-card-body interaction-main-view"><div id="prism-view" class="interaction-view"><div id="prism-body"></div></div><div id="scroll-view" class="interaction-view is-hidden"><div id="scroll-body"></div></div><div id="slice-tags" class="interaction-tags is-hidden"></div></div></section>
+      </section>
+      <section class="interaction-right"><section class="interaction-card"><div id="detail-title" class="interaction-card-title">List Panel</div><div id="detail-default" class="interaction-list-default">点击组件元素后在这里查看详情。</div><div id="detail-body" class="interaction-detail"></div></section></section>
+    </main>
+  </div>
+  <script type="module">
+    import {initInteractionDemo} from "../../../shared/interaction-demo.js";
+    initInteractionDemo({dataset: "reference", dataBaseUrl: "../../data", components: ["chord", "prism"], title: "Chord + Prism Interaction Demo · Reference Data"});
+  </script>
+</body>
+</html>

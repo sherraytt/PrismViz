@@ -1461,6 +1461,7 @@ function createPrismController(element, object, geometry, options = {}) {
     rotationSpeed: toNumber(options.rotationSpeed, DEFAULT_ROTATION_DEGREES_PER_SECOND),
     animationFrame: null,
     rotateToFrame: null,
+    restoreAutoRotate: null,
     lastTime: 0,
     lastPointerX: 0,
     lastPointerY: 0,
@@ -1530,7 +1531,10 @@ function createPrismController(element, object, geometry, options = {}) {
   function rotateToFace(index) {
     const face = geometry.faces[index];
     if (!face) return;
-    const restoreAutoRotate = state.autoRotate;
+    const restoreAutoRotate = state.rotateToFrame != null && state.restoreAutoRotate != null
+      ? state.restoreAutoRotate
+      : state.autoRotate;
+    state.restoreAutoRotate = restoreAutoRotate;
     state.autoRotate = false;
     if (state.rotateToFrame != null) cancelAnimationFrame(state.rotateToFrame);
 
@@ -1550,7 +1554,10 @@ function createPrismController(element, object, geometry, options = {}) {
         state.rotateToFrame = requestAnimationFrame(animate);
       } else {
         state.rotateToFrame = null;
-        state.autoRotate = restoreAutoRotate;
+        state.autoRotate = Boolean(state.restoreAutoRotate);
+        state.restoreAutoRotate = null;
+        state.lastTime = 0;
+        if (state.autoRotate && state.animationFrame == null) start();
       }
     };
     state.rotateToFrame = requestAnimationFrame(animate);
@@ -1613,21 +1620,32 @@ function createPrismController(element, object, geometry, options = {}) {
       state.rotationSpeed = toNumber(speed, state.rotationSpeed);
     },
     setAutoRotate(value) {
-      state.autoRotate = Boolean(value);
+      const nextValue = Boolean(value);
+      if (state.rotateToFrame != null) {
+        state.restoreAutoRotate = nextValue;
+      } else {
+        state.autoRotate = nextValue;
+      }
       state.lastTime = 0;
-      if (state.autoRotate) start();
+      if (nextValue) start();
     },
     isAutoRotate() {
-      return state.autoRotate && state.rotationSpeed !== 0;
+      const desiredAutoRotate = state.rotateToFrame != null && state.restoreAutoRotate != null
+        ? state.restoreAutoRotate
+        : state.autoRotate;
+      return desiredAutoRotate && state.rotationSpeed !== 0;
     },
     getState() {
+      const desiredAutoRotate = state.rotateToFrame != null && state.restoreAutoRotate != null
+        ? state.restoreAutoRotate
+        : state.autoRotate;
       return {
         rotationX: state.rotationX,
         rotationY: state.rotationY,
         translationX: state.translationX,
         translationY: state.translationY,
         scale: state.scale,
-        autoRotate: state.autoRotate,
+        autoRotate: desiredAutoRotate,
         rotationSpeed: state.rotationSpeed,
       };
     },

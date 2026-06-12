@@ -514,6 +514,33 @@ function buildWeightedSegments(items, getSliceId, getWeight, colorMap, sliceById
   return {rows: sortedRows, total};
 }
 
+function buildEqualPlaceholderSegments(model = {}) {
+  const activeSliceId = stringId(model.slice?.id);
+  const sourceSlices = asArray(model.slices).length > 0
+    ? asArray(model.slices)
+    : [...(model.sliceById?.values?.() || [])];
+  const rows = sourceSlices
+    .map(slice => ({
+      sliceId: stringId(slice?.id),
+      label: slice?.shortName || slice?.name || slice?.id,
+      color: slice?.color || getColor(slice?.id, model.colorMap),
+      count: 1,
+      hideCount: true,
+      isPlaceholder: true,
+    }))
+    .filter(row => row.sliceId && row.sliceId !== activeSliceId && hasKnownSlice(model.sliceById, row.sliceId));
+  return {
+    rows,
+    total: rows.length,
+    hideCounts: true,
+    isPlaceholder: true,
+  };
+}
+
+function ensureVisibleFreeGraphSegments(segments = {}, model = {}) {
+  return toNumber(segments.total, 0) > 0 ? segments : buildEqualPlaceholderSegments(model);
+}
+
 function buildContextSegments(contextEdges, direction, activeSliceId, colorMap, sliceById) {
   const rows = new Map();
   contextEdges
@@ -551,6 +578,7 @@ function buildLegacyCombinedContextSegments(combinedContextEdges, model = {}) {
     const key = stringId(sliceId);
     const value = Math.max(0, toNumber(count, 0));
     const isLegacyUnknownSlice = key === "null" || key === "undefined";
+    if (key === stringId(model.slice?.id)) return;
     if (!value || (!hasKnownSlice(model.sliceById, key) && !isLegacyUnknownSlice)) return;
     if (!rows.has(key)) {
       rows.set(key, {
@@ -606,13 +634,18 @@ function buildFreeGraphFlowSegments(edges = [], model = {}) {
   const activeSliceId = stringId(model.slice?.id);
   const legacyCombinedSegments = buildLegacyCombinedContextSegments(model.legacyCombinedContextEdges, model);
   if (legacyCombinedSegments && (legacyCombinedSegments.incoming.total > 0 || legacyCombinedSegments.outgoing.total > 0)) {
-    return legacyCombinedSegments;
+    return {
+      incoming: ensureVisibleFreeGraphSegments(legacyCombinedSegments.incoming, model),
+      outgoing: ensureVisibleFreeGraphSegments(legacyCombinedSegments.outgoing, model),
+    };
   }
   const contextEdges = asArray(model.contextEdges);
   if (contextEdges.length > 0) {
+    const incoming = buildContextSegments(contextEdges, "in", activeSliceId, model.colorMap, model.sliceById);
+    const outgoing = buildContextSegments(contextEdges, "out", activeSliceId, model.colorMap, model.sliceById);
     return {
-      incoming: buildContextSegments(contextEdges, "in", activeSliceId, model.colorMap, model.sliceById),
-      outgoing: buildContextSegments(contextEdges, "out", activeSliceId, model.colorMap, model.sliceById),
+      incoming: ensureVisibleFreeGraphSegments(incoming, model),
+      outgoing: ensureVisibleFreeGraphSegments(outgoing, model),
     };
   }
   const incomingEdges = edges.filter(edge =>
@@ -638,8 +671,8 @@ function buildFreeGraphFlowSegments(edges = [], model = {}) {
     model.sliceById
   );
   return {
-    incoming: sourceSegments,
-    outgoing: targetSegments,
+    incoming: ensureVisibleFreeGraphSegments(sourceSegments, model),
+    outgoing: ensureVisibleFreeGraphSegments(targetSegments, model),
   };
 }
 
@@ -1344,10 +1377,10 @@ function layoutScroll(model, options = {}) {
   const outSegments = buildContextSegments(contextEdges, "out", model.slice.id, model.colorMap, model.sliceById);
   const freeGraphFlowSegments = buildFreeGraphFlowSegments(laidOutEdges, model);
   const topSegments = freeGraph
-    ? (freeGraphFlowSegments.incoming.total > 0 ? freeGraphFlowSegments.incoming : nodeSegments)
+    ? freeGraphFlowSegments.incoming
     : (inSegments.total > 0 ? inSegments : nodeSegments);
   const bottomSegments = freeGraph
-    ? (freeGraphFlowSegments.outgoing.total > 0 ? freeGraphFlowSegments.outgoing : edgeSegments)
+    ? freeGraphFlowSegments.outgoing
     : (outSegments.total > 0 ? outSegments : edgeSegments);
   const leftContext = buildContext(model.contextEdges, years, "in", model.slice.id, model.sliceById);
   const rightContext = buildContext(model.contextEdges, years, "out", model.slice.id, model.sliceById);
@@ -1418,6 +1451,7 @@ function highlightContextSlice(svg, sliceId, direction) {
 function drawScrollBar(group, layout, segments, options = {}) {
   const {x, y, width, height, placement} = options;
   const total = Math.max(1, segments.total);
+  const hideCounts = options.hideCounts === true || segments.hideCounts === true || segments.rows.every(segment => segment.hideCount === true);
   let cursor = x;
 
   const track = createSvgElement("rect", {
@@ -1470,11 +1504,13 @@ function drawScrollBar(group, layout, segments, options = {}) {
     rect.dataset.sliceId = segment.sliceId;
     rect.dataset.placement = placement;
     const title = createSvgElement("title");
-    title.textContent = `${directionLabel(placement)} ${segment.label}: ${segment.count}`;
+    title.textContent = segment.hideCount ? `${directionLabel(placement)} ${segment.label}` : `${directionLabel(placement)} ${segment.label}: ${segment.count}`;
     rect.appendChild(title);
     if (options.tooltip) {
       const dirLabel = directionLabel(placement);
-      const tooltipHtml = `<span>${dirLabel} ${escapeHtml(segment.label)}: ${formatValue(segment.count, options)}</span>`;
+      const tooltipHtml = segment.hideCount
+        ? `<span>${dirLabel} ${escapeHtml(segment.label)}</span>`
+        : `<span>${dirLabel} ${escapeHtml(segment.label)}: ${formatValue(segment.count, options)}</span>`;
       rect.addEventListener("mouseenter", event => {
         rect.classList.add("is-active");
         showTooltip(options.tooltip, tooltipHtml, event.clientX, event.clientY);
@@ -1504,7 +1540,7 @@ function drawScrollBar(group, layout, segments, options = {}) {
     }
     group.appendChild(rect);
 
-    if (segmentWidth > 28) {
+    if (!hideCounts && segmentWidth > 28) {
       const count = createSvgElement("text", {
         class: "gp-scroll-bar-count",
         x: cursor + segmentWidth / 2,
@@ -1592,6 +1628,7 @@ function drawLegacyStyleScrollBar(group, segments, options = {}) {
   const dir = options.dir || (options.placement === "bottom" ? "r" : "l");
   const rows = legacyScrollbarRows(segments, dir);
   if (rows.length === 0) return;
+  const hideCounts = options.hideCounts === true || segments.hideCounts === true || rows.every(row => row.hideCount === true);
 
   const x = toNumber(options.x, 0);
   const y = toNumber(options.y, 0);
@@ -1652,9 +1689,11 @@ function drawLegacyStyleScrollBar(group, segments, options = {}) {
     rect.dataset.sliceId = row.sliceId;
     rect.dataset.placement = options.placement || (dir === "l" ? "top" : "bottom");
     rect.dataset.direction = dir === "l" ? "in" : "out";
-    rect.appendChild(setText(createSvgElement("title"), `${row.label || row.sliceId}: ${row.count}`));
+    rect.appendChild(setText(createSvgElement("title"), row.hideCount ? `${row.label || row.sliceId}` : `${row.label || row.sliceId}: ${row.count}`));
 
-    const tooltipHtml = `<span>${directionLabel(dir)} ${escapeHtml(row.label || row.sliceId)}: ${formatValue(row.count)}</span>`;
+    const tooltipHtml = row.hideCount
+      ? `<span>${directionLabel(dir)} ${escapeHtml(row.label || row.sliceId)}</span>`
+      : `<span>${directionLabel(dir)} ${escapeHtml(row.label || row.sliceId)}: ${formatValue(row.count)}</span>`;
     rect.addEventListener("mouseenter", event => {
       rect.setAttribute("opacity", "0.8");
       if (options.tooltip) showTooltip(options.tooltip, tooltipHtml, event.clientX, event.clientY);
@@ -1685,7 +1724,7 @@ function drawLegacyStyleScrollBar(group, segments, options = {}) {
     group.appendChild(rect);
   });
 
-  rows.forEach((row, index) => {
+  if (!hideCounts) rows.forEach((row, index) => {
     const count = createSvgElement("text", {
       class: `scroll-count${dir} gp-scroll-legacy-axis-count`,
       x: x + segmentPositions[index] + segmentWidths[index] / 2,
@@ -1803,14 +1842,8 @@ function drawLegacyStyleScrollBar(group, segments, options = {}) {
 }
 
 function drawFreeGraphFallbackBars(group, layout, model, tooltip, options = {}) {
-  const nodeSegments = buildSegments(layout.nodes, node => node.primarySliceId || model.slice.id, model.colorMap, model.sliceById);
-  const edgeSegments = buildSegments(layout.edges, edge => {
-    const sourceSlice = edge.sourceNode?.primarySliceId;
-    const targetSlice = edge.targetNode?.primarySliceId;
-    return sourceSlice === model.slice.id ? targetSlice : sourceSlice || targetSlice;
-  }, model.colorMap, model.sliceById);
   const flowSegments = buildFreeGraphFlowSegments(layout.edges, model);
-  if (nodeSegments.total === 0 && edgeSegments.total === 0 && flowSegments.incoming.total === 0 && flowSegments.outgoing.total === 0) return;
+  if (flowSegments.incoming.total === 0 && flowSegments.outgoing.total === 0) return;
 
   const bars = createSvgElement("g", {class: "gp-scroll-bars gp-scroll-free-fallback-bars gp-scroll-legacy-axis-bars"});
   const legacyBaseHeight = Math.cbrt(layout.viewport.width * layout.viewport.height) / 2;
@@ -1819,8 +1852,8 @@ function drawFreeGraphFallbackBars(group, layout, model, tooltip, options = {}) 
   const barHeight = toNumber(options.scrollBarHeight, defaultBarHeight);
   const barGap = toNumber(options.scrollBarGap, defaultBarGap);
   const axisWidth = layout.viewport.width;
-  const topSegments = flowSegments.incoming.total > 0 ? flowSegments.incoming : nodeSegments;
-  const bottomSegments = flowSegments.outgoing.total > 0 ? flowSegments.outgoing : edgeSegments;
+  const topSegments = flowSegments.incoming;
+  const bottomSegments = flowSegments.outgoing;
   drawLegacyStyleScrollBar(bars, topSegments, {
     x: layout.viewport.x,
     y: layout.viewport.y - barGap - barHeight,

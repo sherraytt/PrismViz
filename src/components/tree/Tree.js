@@ -218,6 +218,42 @@ export function renderTree(container, data = {}, options = {}) {
       .forEach(row => element.insertBefore(createNode(row, options, context), tooltip));
   }
 
+  function syncSelectionClasses() {
+    element.querySelectorAll(".gp-tree-node").forEach(node => {
+      const selected = context.selectedIds.has(String(node.dataset.nodeId))
+        || (node.dataset.sliceId != null && context.selectedIds.has(String(node.dataset.sliceId)));
+      node.classList.toggle("is-selected", selected);
+    });
+  }
+
+  function rowMatchesId(row, id) {
+    const activeId = String(id);
+    return [
+      row.id,
+      row.sliceId,
+      row.rawSlice?.id,
+      row.raw?.id,
+      row.raw?.sliceId,
+      row.raw?.rawSlice?.id,
+    ].some(value => value != null && String(value) === activeId);
+  }
+
+  function collectActiveIds(idOrIds) {
+    const sourceIds = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+    const activeIds = new Set();
+    sourceIds.filter(id => id != null).map(String).forEach(id => {
+      activeIds.add(id);
+      rows.forEach(row => {
+        if (!rowMatchesId(row, id)) return;
+        activeIds.add(row.id);
+        if (row.sliceId != null) activeIds.add(String(row.sliceId));
+        if (row.rawSlice?.id != null) activeIds.add(String(row.rawSlice.id));
+        collectDescendantIds(childrenByParent, row.id).forEach(childId => activeIds.add(childId));
+      });
+    });
+    return activeIds;
+  }
+
   element.appendChild(tooltip);
   renderRows();
 
@@ -225,13 +261,12 @@ export function renderTree(container, data = {}, options = {}) {
     rows,
     expandedIds,
     setActive(idOrIds) {
-      const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
-      context.selectedIds = new Set(ids.filter(id => id != null).map(String));
-      renderRows();
+      context.selectedIds = collectActiveIds(idOrIds);
+      syncSelectionClasses();
     },
     clearActive() {
       context.selectedIds.clear();
-      renderRows();
+      syncSelectionClasses();
     },
     expandTo(id) {
       let row = rowById.get(String(id));

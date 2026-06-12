@@ -1,5 +1,7 @@
 import {formatValue} from "../../core/format.js";
 
+let chordInstanceCounter = 0;
+
 function resolveElement(container) {
   if (typeof container === "string") return document.querySelector(container);
   return container;
@@ -56,11 +58,237 @@ function sumColumns(matrix = []) {
   ).slice(0, size);
 }
 
+function relationStrength(matrix, sourceIndex, targetIndex) {
+  return Number(matrix[sourceIndex]?.[targetIndex] || 0) + Number(matrix[targetIndex]?.[sourceIndex] || 0);
+}
+
+function relationEdges(matrix = []) {
+  const edges = [];
+  for (let sourceIndex = 0; sourceIndex < matrix.length; sourceIndex += 1) {
+    for (let targetIndex = sourceIndex + 1; targetIndex < matrix.length; targetIndex += 1) {
+      const weight = relationStrength(matrix, sourceIndex, targetIndex);
+      if (weight > 0) edges.push({sourceIndex, targetIndex, weight});
+    }
+  }
+  return edges;
+}
+
+function isBetweenCircular(value, start, end, size) {
+  if (start < end) return value > start && value < end;
+  return value > start || value < end;
+}
+
+function edgesCross(first, second, positions, size) {
+  if (
+    !positions.has(first.sourceIndex)
+    || !positions.has(first.targetIndex)
+    || !positions.has(second.sourceIndex)
+    || !positions.has(second.targetIndex)
+  ) {
+    return false;
+  }
+  if (
+    first.sourceIndex === second.sourceIndex
+    || first.sourceIndex === second.targetIndex
+    || first.targetIndex === second.sourceIndex
+    || first.targetIndex === second.targetIndex
+  ) {
+    return false;
+  }
+  const firstStart = positions.get(first.sourceIndex);
+  const firstEnd = positions.get(first.targetIndex);
+  const secondStart = positions.get(second.sourceIndex);
+  const secondEnd = positions.get(second.targetIndex);
+  const secondStartInside = isBetweenCircular(secondStart, firstStart, firstEnd, size);
+  const secondEndInside = isBetweenCircular(secondEnd, firstStart, firstEnd, size);
+  return secondStartInside !== secondEndInside;
+}
+
+function scoreSliceOrder(order, edges) {
+  const size = order.length;
+  const positions = new Map(order.map((index, position) => [index, position]));
+  let crossingScore = 0;
+  let distanceScore = 0;
+
+  edges.forEach(edge => {
+    if (!positions.has(edge.sourceIndex) || !positions.has(edge.targetIndex)) return;
+    const sourcePosition = positions.get(edge.sourceIndex);
+    const targetPosition = positions.get(edge.targetIndex);
+    const rawDistance = Math.abs(sourcePosition - targetPosition);
+    distanceScore += edge.weight * Math.min(rawDistance, size - rawDistance);
+  });
+
+  for (let firstIndex = 0; firstIndex < edges.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < edges.length; secondIndex += 1) {
+      if (edgesCross(edges[firstIndex], edges[secondIndex], positions, size)) {
+        crossingScore += edges[firstIndex].weight * edges[secondIndex].weight;
+      }
+    }
+  }
+
+  return crossingScore * 100000 + distanceScore;
+}
+
+function rotateOrderToPrimary(order, priorities) {
+  if (order.length <= 1) return order;
+  let primaryPosition = 0;
+  for (let position = 1; position < order.length; position += 1) {
+    const current = order[position];
+    const primary = order[primaryPosition];
+    if (
+      priorities[current] > priorities[primary]
+      || (priorities[current] === priorities[primary] && current < primary)
+    ) {
+      primaryPosition = position;
+    }
+  }
+  return order.slice(primaryPosition).concat(order.slice(0, primaryPosition));
+}
+
+function normalizeCustomSliceOrder(sliceOrder, slices) {
+  if (!Array.isArray(sliceOrder)) return null;
+  const indexById = new Map(slices.map((slice, index) => [String(slice.id), index]));
+  const used = new Set();
+  const order = [];
+  sliceOrder.forEach(value => {
+    const index = Number.isInteger(value) ? value : indexById.get(String(value));
+    if (index == null || index < 0 || index >= slices.length || used.has(index)) return;
+    used.add(index);
+    order.push(index);
+  });
+  slices.forEach((_, index) => {
+    if (!used.has(index)) order.push(index);
+  });
+  return order;
+}
+
+function buildSliceOrder(slices, matrix, outdegree, indegree, options = {}) {
+  const customOrder = normalizeCustomSliceOrder(options.sliceOrder, slices);
+  if (customOrder) return customOrder;
+  if (options.sliceOrder === "input" || options.preserveSliceOrder === true) {
+    return slices.map((_, index) => index);
+  }
+
+  const priorities = slices.map((slice, index) => {
+    const dominantRelation = Math.max(outdegree[index] || 0, indegree[index] || 0);
+    return dominantRelation || Number(slice.size || 0) || 1;
+  });
+  const edges = relationEdges(matrix);
+  const remaining = slices
+    .map((_, index) => index)
+    .sort((a, b) => priorities[b] - priorities[a] || String(slices[a]?.id).localeCompare(String(slices[b]?.id)));
+  if (remaining.length <= 2 || edges.length <= 1) return remaining;
+
+  let order = [remaining.shift()];
+  remaining.forEach(candidate => {
+    let bestOrder = null;
+    let bestScore = Infinity;
+    for (let position = 0; position <= order.length; position += 1) {
+      const nextOrder = order.slice(0, position).concat(candidate, order.slice(position));
+      const score = scoreSliceOrder(nextOrder, edges);
+      if (score < bestScore) {
+        bestScore = score;
+        bestOrder = nextOrder;
+      }
+    }
+    order = bestOrder;
+  });
+
+  let bestScore = scoreSliceOrder(order, edges);
+  let improved = true;
+  for (let pass = 0; pass < 24 && improved; pass += 1) {
+    improved = false;
+    for (let from = 0; from < order.length; from += 1) {
+      for (let to = 0; to < order.length; to += 1) {
+        if (from === to) continue;
+        const candidate = [...order];
+        const [moved] = candidate.splice(from, 1);
+        candidate.splice(to, 0, moved);
+        const score = scoreSliceOrder(candidate, edges);
+        if (score + 1e-6 < bestScore) {
+          order = candidate;
+          bestScore = score;
+          improved = true;
+        }
+      }
+    }
+  }
+
+  return rotateOrderToPrimary(order, priorities);
+}
+
 function polar(radius, angle) {
   return {
     x: Math.cos(angle - Math.PI / 2) * radius,
     y: Math.sin(angle - Math.PI / 2) * radius,
   };
+}
+
+function parseHexColor(color) {
+  const value = String(color || "").trim();
+  const shortHex = value.match(/^#([0-9a-f]{3})$/i);
+  if (shortHex) {
+    return shortHex[1].split("").map(channel => parseInt(channel + channel, 16));
+  }
+  const longHex = value.match(/^#([0-9a-f]{6})$/i);
+  if (longHex) {
+    return [
+      parseInt(longHex[1].slice(0, 2), 16),
+      parseInt(longHex[1].slice(2, 4), 16),
+      parseInt(longHex[1].slice(4, 6), 16),
+    ];
+  }
+  return null;
+}
+
+function mixHexColor(sourceColor, targetColor, ratio = 0.5) {
+  const source = parseHexColor(sourceColor);
+  const target = parseHexColor(targetColor);
+  if (!source || !target) return sourceColor;
+  const mixed = source.map((channel, index) => Math.round(channel + (target[index] - channel) * ratio));
+  return `rgb(${mixed[0]}, ${mixed[1]}, ${mixed[2]})`;
+}
+
+function appendRibbonGradient(defs, id, ribbon, radius, namespace) {
+  const sourcePoint = polar(radius, (ribbon.sourceStart + ribbon.sourceEnd) / 2);
+  const targetPoint = polar(radius, (ribbon.targetStart + ribbon.targetEnd) / 2);
+  const sourceColor = ribbon.source.slice.color || "#9bb";
+  const targetColor = ribbon.target.slice.color || "#9bb";
+  const middleColor = mixHexColor(sourceColor, targetColor, 0.5);
+  const gradient = document.createElementNS(namespace, "linearGradient");
+  gradient.setAttribute("id", id);
+  gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+  gradient.setAttribute("x1", sourcePoint.x);
+  gradient.setAttribute("y1", sourcePoint.y);
+  gradient.setAttribute("x2", targetPoint.x);
+  gradient.setAttribute("y2", targetPoint.y);
+
+  [
+    ["0%", sourceColor, 0.9],
+    ["18%", sourceColor, 0.78],
+    ["50%", middleColor, 0.76],
+    ["82%", targetColor, 0.78],
+    ["100%", targetColor, 0.9],
+  ].forEach(([offset, color, opacity]) => {
+    const stop = document.createElementNS(namespace, "stop");
+    stop.setAttribute("offset", offset);
+    stop.setAttribute("stop-color", color);
+    stop.setAttribute("stop-opacity", opacity);
+    gradient.appendChild(stop);
+  });
+
+  defs.appendChild(gradient);
+}
+
+function normalizeDegrees(degrees) {
+  return ((degrees + 180) % 360 + 360) % 360 - 180;
+}
+
+function readableTangentLabelRotation(angle, offset = 0) {
+  let degrees = normalizeDegrees(angle * 180 / Math.PI + offset);
+  if (degrees > 90) degrees -= 180;
+  if (degrees < -90) degrees += 180;
+  return degrees;
 }
 
 function arcPath(innerRadius, outerRadius, startAngle, endAngle) {
@@ -79,7 +307,7 @@ function arcPath(innerRadius, outerRadius, startAngle, endAngle) {
   ].join(" ");
 }
 
-function ribbonPath(radius, sourceStart, sourceEnd, targetStart, targetEnd) {
+function ribbonPath(radius, sourceStart, sourceEnd, targetStart, targetEnd, curvePull = 0.26) {
   const sourceA = polar(radius, sourceStart);
   const sourceB = polar(radius, sourceEnd);
   const targetA = polar(radius, targetStart);
@@ -90,19 +318,22 @@ function ribbonPath(radius, sourceStart, sourceEnd, targetStart, targetEnd) {
   return [
     `M ${sourceA.x} ${sourceA.y}`,
     `A ${radius} ${radius} 0 ${sourceLarge} 1 ${sourceB.x} ${sourceB.y}`,
-    `Q 0 0 ${targetA.x} ${targetA.y}`,
+    `C ${sourceB.x * curvePull} ${sourceB.y * curvePull} ${targetA.x * curvePull} ${targetA.y * curvePull} ${targetA.x} ${targetA.y}`,
     `A ${radius} ${radius} 0 ${targetLarge} 1 ${targetB.x} ${targetB.y}`,
-    `Q 0 0 ${sourceA.x} ${sourceA.y}`,
+    `C ${targetB.x * curvePull} ${targetB.y * curvePull} ${sourceA.x * curvePull} ${sourceA.y * curvePull} ${sourceA.x} ${sourceA.y}`,
     "Z",
   ].join(" ");
 }
 
 function buildChordGeometry(model, options = {}) {
   const {slices, matrix} = model;
+  const ribbonWidthScale = Math.max(0.08, Math.min(1, Number(options.ribbonWidthScale ?? 1)));
+  const minRibbonAngle = Math.max(0.002, Number(options.minRibbonAngle ?? 0.005));
   const outdegree = sumRows(matrix);
   const indegree = sumColumns(matrix);
+  const order = buildSliceOrder(slices, matrix, outdegree, indegree, options);
   const weights = slices.map((slice, index) => {
-    const relationWeight = outdegree[index] + indegree[index];
+    const relationWeight = Math.max(outdegree[index] || 0, indegree[index] || 0);
     const sizeWeight = Number(slice.size || 0);
     return Math.max(1, options.weightBy === "size" ? sizeWeight : relationWeight || sizeWeight);
   });
@@ -111,21 +342,26 @@ function buildChordGeometry(model, options = {}) {
   const totalGap = gap * slices.length;
   let cursor = 0;
   const angleByWeight = (2 * Math.PI - totalGap) / Math.max(totalWeight, 1);
-  const arcs = weights.map((weight, index) => {
+  const arcsByIndex = new Array(slices.length);
+  const arcs = order.map((sliceIndex, orderIndex) => {
+    const weight = weights[sliceIndex];
     const startAngle = cursor;
     const endAngle = startAngle + weight * angleByWeight;
     cursor = endAngle + gap;
-    return {
-      index,
-      slice: slices[index],
+    const arc = {
+      index: sliceIndex,
+      orderIndex,
+      slice: slices[sliceIndex],
       startAngle,
       endAngle,
       cursorStart: startAngle,
       cursorEnd: endAngle,
-      out: outdegree[index],
-      in: indegree[index],
+      out: outdegree[sliceIndex],
+      in: indegree[sliceIndex],
       weight,
     };
+    arcsByIndex[sliceIndex] = arc;
+    return arc;
   });
 
   const ribbons = [];
@@ -135,20 +371,37 @@ function buildChordGeometry(model, options = {}) {
       const backward = Number(matrix[targetIndex]?.[sourceIndex] || 0);
       if (forward <= 0 && backward <= 0) continue;
 
-      const sourceArc = arcs[sourceIndex];
-      const targetArc = arcs[targetIndex];
+      const sourceArc = arcsByIndex[sourceIndex];
+      const targetArc = arcsByIndex[targetIndex];
+      if (!sourceArc || !targetArc) continue;
       const sourceAvailable = sourceArc.endAngle - sourceArc.startAngle;
       const targetAvailable = targetArc.endAngle - targetArc.startAngle;
       const sourceSpan = sourceAvailable * (forward / Math.max(sourceArc.out, 1));
       const targetSpan = targetAvailable * (backward / Math.max(targetArc.out, 1));
       const fallbackSpan = Math.min(sourceAvailable, targetAvailable) * 0.08;
-      const sourceStart = sourceArc.cursorStart;
-      const sourceEnd = sourceStart + Math.max(sourceSpan, forward > 0 ? 0.006 : fallbackSpan);
-      const targetEnd = targetArc.cursorEnd;
-      const targetStart = targetEnd - Math.max(targetSpan, backward > 0 ? 0.006 : fallbackSpan);
+      const sourceAllocStart = sourceArc.cursorStart;
+      const sourceAllocEnd = Math.min(
+        sourceAllocStart + Math.max(sourceSpan, forward > 0 ? minRibbonAngle : fallbackSpan),
+        sourceArc.endAngle
+      );
+      const targetAllocEnd = targetArc.cursorEnd;
+      const targetAllocStart = Math.max(
+        targetAllocEnd - Math.max(targetSpan, backward > 0 ? minRibbonAngle : fallbackSpan),
+        targetArc.startAngle
+      );
+      const sourceAllocSpan = Math.max(sourceAllocEnd - sourceAllocStart, minRibbonAngle);
+      const targetAllocSpan = Math.max(targetAllocEnd - targetAllocStart, minRibbonAngle);
+      const sourceDrawSpan = Math.min(sourceAllocSpan, Math.max(minRibbonAngle, sourceAllocSpan * ribbonWidthScale));
+      const targetDrawSpan = Math.min(targetAllocSpan, Math.max(minRibbonAngle, targetAllocSpan * ribbonWidthScale));
+      const sourcePad = Math.max(0, (sourceAllocSpan - sourceDrawSpan) / 2);
+      const targetPad = Math.max(0, (targetAllocSpan - targetDrawSpan) / 2);
+      const sourceStart = sourceAllocStart + sourcePad;
+      const sourceEnd = sourceAllocEnd - sourcePad;
+      const targetStart = targetAllocStart + targetPad;
+      const targetEnd = targetAllocEnd - targetPad;
 
-      sourceArc.cursorStart = Math.min(sourceEnd, sourceArc.endAngle);
-      targetArc.cursorEnd = Math.max(targetStart, targetArc.startAngle);
+      sourceArc.cursorStart = sourceAllocEnd;
+      targetArc.cursorEnd = targetAllocStart;
 
       ribbons.push({
         id: `${sourceArc.slice.id}->${targetArc.slice.id}`,
@@ -290,19 +543,22 @@ function installPanZoom(svg, content, options = {}) {
 function renderSvgMode(element, model, options = {}) {
   const viewport = resolveSvgViewport(element, options);
   const size = viewport.size;
-  const arcThickness = Number(options.arcThickness ?? Math.max(36, Math.min(52, size * 0.06)));
-  const labelFontSize = Number(options.labelFontSize ?? Math.max(23, Math.min(34, size * 0.035)));
+  const arcThickness = Number(options.arcThickness ?? Math.max(12, Math.min(26, size * 0.03)));
+  const labelFontSize = Number(options.labelFontSize ?? Math.max(13, Math.min(21, size * 0.037)));
   const maxLabelWidth = Math.max(0, ...model.slices.map(slice =>
     estimateLabelWidth(slice.chordName || slice.shortName || slice.name, labelFontSize)
   ));
-  const labelOffset = Math.max(30, arcThickness * 0.7);
-  const safeOuterRadius = Math.max(120, size / 2 - labelOffset - maxLabelWidth * 0.48 - 10);
+  const labelTrackGap = Number(options.labelTrackGap ?? 5);
+  const labelOuterBudget = labelTrackGap + labelFontSize * 1.05 + maxLabelWidth * 0.52 + 10;
+  const minOuterRadius = Math.max(72, Math.min(112, size * 0.24));
+  const safeOuterRadius = Math.max(minOuterRadius, size / 2 - labelOuterBudget);
   const outerRadius = Number(options.outerRadius ?? Math.min(size * 0.42, safeOuterRadius));
   const innerRadius = outerRadius - arcThickness;
-  const ribbonRadius = innerRadius - Math.max(7, arcThickness * 0.18);
-  const labelRadius = outerRadius + labelOffset;
+  const ribbonRadius = innerRadius - Math.max(5, arcThickness * 0.14);
+  const ribbonCurvePull = Math.max(0.08, Math.min(0.8, Number(options.ribbonCurvePull ?? 0.28)));
   const geometry = buildChordGeometry(model, options);
   const namespace = "http://www.w3.org/2000/svg";
+  const gradientPrefix = `gp-chord-gradient-${chordInstanceCounter += 1}`;
   const tooltip = document.createElement("div");
   tooltip.className = "gp-chord-tooltip";
   tooltip.hidden = true;
@@ -315,11 +571,15 @@ function renderSvgMode(element, model, options = {}) {
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", "Slice relation chord diagram");
 
+  const defs = document.createElementNS(namespace, "defs");
+  svg.appendChild(defs);
   const content = document.createElementNS(namespace, "g");
   content.setAttribute("class", "gp-chord-content");
   const ribbonsGroup = document.createElementNS(namespace, "g");
   ribbonsGroup.setAttribute("class", "gp-chord-ribbons");
-  geometry.ribbons.forEach(ribbon => {
+  geometry.ribbons.forEach((ribbon, index) => {
+    const gradientId = `${gradientPrefix}-${index}`;
+    appendRibbonGradient(defs, gradientId, ribbon, ribbonRadius, namespace);
     const path = document.createElementNS(namespace, "path");
     path.setAttribute("class", `gp-chord-ribbon source-${ribbon.source.index} target-${ribbon.target.index}`);
     path.setAttribute("d", ribbonPath(
@@ -327,10 +587,10 @@ function renderSvgMode(element, model, options = {}) {
       ribbon.sourceStart,
       ribbon.sourceEnd,
       ribbon.targetStart,
-      ribbon.targetEnd
+      ribbon.targetEnd,
+      ribbonCurvePull
     ));
-    path.setAttribute("fill", ribbon.source.slice.color || "#9bb");
-    path.setAttribute("opacity", "0.22");
+    path.setAttribute("fill", `url(#${gradientId})`);
 
     path.addEventListener("mouseenter", event => {
       svg.querySelectorAll(".gp-chord-ribbon, .gp-chord-arc").forEach(node => node.classList.add("is-dimmed"));
@@ -382,15 +642,19 @@ function renderSvgMode(element, model, options = {}) {
     arcsGroup.appendChild(path);
 
     const angle = (arc.startAngle + arc.endAngle) / 2;
+    const labelRadius = Number(options.labelRadius ?? outerRadius + labelTrackGap + labelFontSize * 0.62);
     const labelPoint = polar(labelRadius, angle);
     const text = document.createElementNS(namespace, "text");
     text.setAttribute("class", "gp-chord-label");
     text.setAttribute("x", labelPoint.x);
     text.setAttribute("y", labelPoint.y);
-    text.setAttribute("text-anchor", angle > Math.PI ? "end" : "start");
+    text.setAttribute("text-anchor", "middle");
     text.setAttribute("dominant-baseline", "middle");
     text.setAttribute("font-size", labelFontSize);
-    text.setAttribute("transform", `rotate(${angle * 180 / Math.PI - 90} ${labelPoint.x} ${labelPoint.y})${angle > Math.PI ? ` rotate(180 ${labelPoint.x} ${labelPoint.y})` : ""}`);
+    text.setAttribute(
+      "transform",
+      `rotate(${readableTangentLabelRotation(angle, Number(options.labelRotationOffset ?? 0))} ${labelPoint.x} ${labelPoint.y})`
+    );
     text.textContent = arc.slice.chordName || arc.slice.shortName || arc.slice.name;
     arcsGroup.appendChild(text);
   });
@@ -543,51 +807,72 @@ export function renderChord(container, data = {}, options = {}) {
 
   function clearHighlight() {
     element.querySelectorAll(".gp-chord-arc, .gp-chord-ribbon, .gp-chord-slice").forEach(node => {
-      node.classList.remove("is-selected", "is-coordinator-active", "is-coordinator-dimmed");
+      node.classList.remove("is-coordinator-active", "is-coordinator-relation", "is-coordinator-dimmed");
+    });
+  }
+
+  function dimChordGraph() {
+    element.querySelectorAll(".gp-chord-arc, .gp-chord-ribbon").forEach(node => {
+      node.classList.add("is-coordinator-dimmed");
+    });
+  }
+
+  function activateChordNodes(selector, className) {
+    element.querySelectorAll(selector).forEach(node => {
+      node.classList.remove("is-coordinator-dimmed");
+      node.classList.add(className);
     });
   }
 
   function setActiveSlice(sliceId) {
     const activeId = String(sliceId);
     const index = sliceIndex(activeId);
-    element.querySelectorAll(".gp-chord-arc.is-selected, .gp-chord-slice.is-selected").forEach(node => {
-      node.classList.remove("is-selected");
+    element.querySelectorAll(".gp-chord-arc, .gp-chord-ribbon, .gp-chord-slice").forEach(node => {
+      node.classList.remove("is-selected", "is-coordinator-dimmed");
     });
+    if (index < 0) return;
+    dimChordGraph();
     element.querySelectorAll(".gp-chord-arc, .gp-chord-slice").forEach(node => {
       node.classList.toggle(
         "is-selected",
         node.classList.contains(`arc-${index}`) || node.dataset.sliceId === activeId
       );
+      if (node.classList.contains("is-selected")) node.classList.remove("is-coordinator-dimmed");
     });
+    activateChordNodes(`.gp-chord-ribbon.source-${index}, .gp-chord-ribbon.target-${index}`, "is-selected");
   }
 
   function highlightSlice(sliceId) {
     const activeId = String(sliceId);
     const index = sliceIndex(activeId);
-    element.querySelectorAll(".gp-chord-arc.is-coordinator-active, .gp-chord-slice.is-coordinator-active").forEach(node => {
+    element.querySelectorAll(".gp-chord-arc.is-coordinator-active, .gp-chord-ribbon.is-coordinator-active, .gp-chord-slice.is-coordinator-active").forEach(node => {
       node.classList.remove("is-coordinator-active");
     });
+    if (index < 0) return;
+    dimChordGraph();
     element.querySelectorAll(".gp-chord-arc, .gp-chord-slice").forEach(node => {
       node.classList.toggle(
         "is-coordinator-active",
         node.classList.contains(`arc-${index}`) || node.dataset.sliceId === activeId
       );
+      if (node.classList.contains("is-coordinator-active")) node.classList.remove("is-coordinator-dimmed");
     });
+    activateChordNodes(`.gp-chord-ribbon.source-${index}, .gp-chord-ribbon.target-${index}`, "is-coordinator-active");
   }
 
   function highlightRelation(sourceSliceId, targetSliceId) {
     const sourceIndex = sliceIndex(sourceSliceId);
     const targetIndex = sliceIndex(targetSliceId);
-    element.querySelectorAll(".gp-chord-ribbon.is-coordinator-active").forEach(node => {
-      node.classList.remove("is-coordinator-active");
+    element.querySelectorAll(".gp-chord-arc.is-coordinator-relation, .gp-chord-ribbon.is-coordinator-relation, .gp-chord-slice.is-coordinator-relation").forEach(node => {
+      node.classList.remove("is-coordinator-relation");
     });
     if (sourceIndex < 0 || targetIndex < 0) return;
-    element.querySelectorAll([
+    dimChordGraph();
+    activateChordNodes(`.gp-chord-arc.arc-${sourceIndex}, .gp-chord-arc.arc-${targetIndex}`, "is-coordinator-relation");
+    activateChordNodes([
       `.gp-chord-ribbon.source-${sourceIndex}.target-${targetIndex}`,
       `.gp-chord-ribbon.source-${targetIndex}.target-${sourceIndex}`,
-    ].join(",")).forEach(node => {
-      node.classList.add("is-coordinator-active");
-    });
+    ].join(","), "is-coordinator-relation");
   }
 
   return {

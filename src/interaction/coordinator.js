@@ -35,9 +35,10 @@ function collectSliceIds(model = {}) {
   asArray(model.chord?.slices).forEach(slice => add(slice?.id));
   Object.keys(model.scrollBySliceId || {}).forEach(add);
   asArray(model.tree?.rows).forEach(row => {
-    add(row?.id);
     add(row?.sliceId);
     add(row?.primarySliceId);
+    add(row?.rawSlice?.id);
+    if (row?.type === "slice") add(row?.id);
   });
 
   return ids;
@@ -73,6 +74,11 @@ function relationTitle(relation) {
 export function createInteractionCoordinator(options = {}) {
   const model = options.model || {};
   const sliceIds = collectSliceIds(model);
+  const treeRowById = new Map(
+    asArray(model.tree?.rows)
+      .map(row => [stringId(row?.id), row])
+      .filter(([id]) => Boolean(id))
+  );
   const instances = new Map();
   let destroyed = false;
   let selectedContext = null;
@@ -95,8 +101,34 @@ export function createInteractionCoordinator(options = {}) {
     return Boolean(id && (sliceIds.size === 0 || sliceIds.has(id)));
   }
 
+  function normalizeTreeSliceId(value) {
+    const id = typeof value === "object" ? stringId(value?.id) : stringId(value);
+    let row = (typeof value === "object" && value?.parentId != null) ? value : treeRowById.get(id);
+    const seen = new Set();
+
+    while (row && !seen.has(stringId(row.id))) {
+      seen.add(stringId(row.id));
+      const candidates = [
+        row.sliceId,
+        row.primarySliceId,
+        row.rawSlice?.id,
+        row.type === "slice" ? row.id : null,
+      ];
+      for (const candidate of candidates) {
+        const candidateId = stringId(candidate);
+        if (isKnownSliceId(candidateId)) return candidateId;
+      }
+      row = treeRowById.get(stringId(row.parentId));
+    }
+
+    return null;
+  }
+
   function normalizeSliceId(sliceOrId) {
     if (sliceOrId == null) return null;
+    const treeSliceId = normalizeTreeSliceId(sliceOrId);
+    if (treeSliceId) return treeSliceId;
+
     if (typeof sliceOrId !== "object") {
       const id = stringId(sliceOrId);
       return isKnownSliceId(id) ? id : null;
@@ -188,9 +220,12 @@ export function createInteractionCoordinator(options = {}) {
   }
 
   function setMainView(nextView, meta = {}) {
-    if (!nextView || state.mainView === nextView) return;
-    state.mainView = nextView;
-    callMaybe(options.onViewChange, nextView, getState(), meta);
+    const view = String(nextView || "").toLowerCase();
+    if (!["prism", "scroll"].includes(view) || state.mainView === view) return state.mainView;
+    state.mainView = view;
+    callMaybe(options.onViewChange, view, getState(), meta);
+    callMaybe(options.onStateChange, getState(), {...meta, event: meta.event || "view:change"});
+    return state.mainView;
   }
 
   function callInstance(componentName, methodName, ...args) {
@@ -248,23 +283,30 @@ export function createInteractionCoordinator(options = {}) {
     }
   }
 
-  function applyChordState(displaySliceId, relation) {
+  function applyChordState(displaySliceId, relation, meta = {}) {
     callInstance("chord", "clearHighlight");
-    if (state.activeSliceId) callInstance("chord", "setActiveSlice", state.activeSliceId);
-    if (!state.activeSliceId && state.focusedSliceId) callInstance("chord", "highlightSlice", state.focusedSliceId);
-    if (displaySliceId && displaySliceId !== state.activeSliceId) callInstance("chord", "highlightSlice", displaySliceId);
+    const prismSelfFocus = meta.source === "prism" && meta.event === "slice:focus";
+    if (prismSelfFocus && state.focusedSliceId) callInstance("chord", "setActiveSlice", state.focusedSliceId);
+    if (state.activeSliceId && !prismSelfFocus) callInstance("chord", "setActiveSlice", state.activeSliceId);
+    if ((!state.activeSliceId || prismSelfFocus) && state.focusedSliceId) callInstance("chord", "highlightSlice", state.focusedSliceId);
+    if (displaySliceId && (prismSelfFocus || displaySliceId !== state.activeSliceId)) callInstance("chord", "highlightSlice", displaySliceId);
     if (state.activeRelation) {
       callInstance("chord", "highlightRelation", state.activeRelation.sourceSliceId, state.activeRelation.targetSliceId);
     }
     if (relation) callInstance("chord", "highlightRelation", relation.sourceSliceId, relation.targetSliceId);
   }
 
-  function applyPrismState(displaySliceId) {
+  function applyPrismState(displaySliceId, relation, meta = {}) {
+    if (meta.skipPrism === true) return;
     callInstance("prism", "clearHighlight");
-    if (state.activeSliceId) {
+    const prismSelfFocus = meta.source === "prism" && meta.event === "slice:focus";
+    if (state.activeSliceId && !prismSelfFocus) {
       callInstance("prism", "setActiveSlice", state.activeSliceId);
     } else if (displaySliceId) {
       callInstance("prism", "highlightSlice", displaySliceId);
+    }
+    if (relation?.targetSliceId && relation.targetSliceId !== state.activeSliceId) {
+      callInstance("prism", "highlightSlice", relation.targetSliceId);
     }
   }
 
@@ -280,10 +322,13 @@ export function createInteractionCoordinator(options = {}) {
     if (destroyed) return;
     syncContextState();
     const relation = visualRelation();
-    const displaySliceId = state.hoveredSliceId || state.activeSliceId || state.focusedSliceId;
+    const displaySliceId = state.hoveredSliceId
+      || (meta.source === "prism" && meta.event === "slice:focus" ? state.focusedSliceId : null)
+      || state.activeSliceId
+      || state.focusedSliceId;
     applyTreeState(displaySliceId, relation);
-    applyChordState(displaySliceId, relation);
-    applyPrismState(displaySliceId);
+    applyChordState(displaySliceId, relation, meta);
+    applyPrismState(displaySliceId, relation, meta);
     applyScrollState(relation);
     callMaybe(options.onStateChange, getState(), meta);
   }
@@ -353,12 +398,34 @@ export function createInteractionCoordinator(options = {}) {
     if (destroyed) return null;
     const normalized = normalizeRelation(relation);
     if (!normalized) return null;
+    state.activeSliceId = normalized.sourceSliceId;
+    state.focusedSliceId = normalized.sourceSliceId;
     state.activeRelation = normalized;
     state.hoveredRelation = null;
     state.hoveredSliceId = null;
-    selectedContext = null;
+    selectedContext = {
+      sliceId: normalized.targetSliceId,
+      direction: "out",
+      sourceSliceId: normalized.sourceSliceId,
+      targetSliceId: normalized.targetSliceId,
+      raw: normalized.raw,
+    };
     hoveredContext = null;
     state.source = meta.source || null;
+
+    if (instances.has("scroll") || typeof options.onScrollSliceChange === "function") {
+      setMainView("scroll", {...meta, event: "view:change"});
+      const scrollData = callMaybe(options.getScrollData, normalized.sourceSliceId, {model, state: getState(), source: state.source})
+        ?? model.scrollBySliceId?.[normalized.sourceSliceId]
+        ?? null;
+      callMaybe(options.onScrollSliceChange, normalized.sourceSliceId, {
+        scrollData,
+        source: state.source,
+        state: getState(),
+        relation: normalized,
+      });
+    }
+
     applyState({...meta, event: "relation:select"});
     return normalized;
   }
@@ -477,15 +544,10 @@ export function createInteractionCoordinator(options = {}) {
     hoverContext,
     selectContext,
     clearTransient,
+    setMainView,
     getState,
     destroy,
   };
-
-  const initialSliceId = normalizeSliceId(options.initialSliceId);
-  if (initialSliceId) {
-    state.activeSliceId = initialSliceId;
-    state.focusedSliceId = initialSliceId;
-  }
 
   return api;
 }

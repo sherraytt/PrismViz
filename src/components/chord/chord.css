@@ -42,7 +42,8 @@
 .gp-chord-ribbon {
   cursor: pointer;
   mix-blend-mode: multiply;
-  stroke: rgba(255, 255, 255, 0.4);
+  opacity: 0.72;
+  stroke: rgba(255, 255, 255, 0.28);
   stroke-width: 0.5;
   transition: opacity 140ms ease;
 }
@@ -52,10 +53,40 @@
   opacity: 0.08;
 }
 
+.gp-chord-arc.is-selected,
+.gp-chord-arc.is-coordinator-active,
+.gp-chord-arc.is-coordinator-relation {
+  opacity: 0.9;
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 1.5;
+}
+
+.gp-chord-ribbon.is-selected,
+.gp-chord-ribbon.is-coordinator-active,
+.gp-chord-ribbon.is-coordinator-relation {
+  opacity: 0.9;
+  stroke: rgba(255, 255, 255, 0.34);
+  stroke-width: 0.5;
+}
+
+.gp-chord-arc.is-coordinator-dimmed {
+  opacity: 0.3;
+}
+
+.gp-chord-ribbon.is-coordinator-dimmed {
+  opacity: 0.08;
+}
+
+.gp-chord-slice.is-selected,
+.gp-chord-slice.is-coordinator-active,
+.gp-chord-slice.is-coordinator-relation {
+  background: #d7eef1;
+}
+
 .gp-chord-label {
   fill: #111111;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 21px;
+  font-weight: 400;
   pointer-events: none;
 }
 
