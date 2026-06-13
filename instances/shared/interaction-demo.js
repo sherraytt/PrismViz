@@ -606,9 +606,7 @@ export async function initInteractionDemo(config = {}) {
   }
 
   showMainView(currentView);
-  if (currentView === "scroll" && hasComponent(components, "scroll")) {
-    coordinator.focusSlice(activeSliceId, {source: "demo-init"});
-  }
+  coordinator.focusSlice(activeSliceId, {source: "demo-init"});
   updateStatus(coordinator.getState());
 
   return {
